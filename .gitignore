@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Local Windows dev backup (do not commit)
+pnpm-workspace.yaml.bak
