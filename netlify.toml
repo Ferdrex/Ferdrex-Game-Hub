@@ -1,0 +1,37 @@
+# ============================================================================
+# Netlify config para Drex Arcade (game-center)
+# ============================================================================
+# Monorepo pnpm. Netlify instala desde la raíz (resuelve los paquetes
+# workspace:*) y luego construye solo el paquete del frontend.
+#
+# El vite.config.ts EXIGE las variables PORT y BASE_PATH o el build falla,
+# por eso se definen abajo. El output de Vite es dist/public (no dist).
+# ============================================================================
+
+[build]
+  base = "."
+  command = "pnpm --filter @workspace/game-center run build"
+  publish = "artifacts/game-center/dist/public"
+
+[build.environment]
+  # Requeridas por vite.config.ts (aunque PORT solo se usa en dev/preview,
+  # el config lanza error si no existe durante el build).
+  PORT = "5000"
+  BASE_PATH = "/"
+  # El código usa import.meta.dirname (Node 20.11+). Fijamos una versión LTS.
+  NODE_VERSION = "22"
+  # El lockfile y los overrides de pnpm-workspace.yaml son formato pnpm 10.
+  # Con pnpm 9 falla el frozen install (ERR_PNPM_LOCKFILE_CONFIG_MISMATCH).
+  PNPM_VERSION = "10"
+
+# SPA: todo cae a index.html (la app enruta por estado en el cliente).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Cache agresivo para los assets con hash (Vite les pone hash en el nombre).
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

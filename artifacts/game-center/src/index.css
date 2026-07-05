@@ -1,0 +1,187 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --font-sans: var(--app-font-sans);
+  --font-mono: var(--app-font-mono);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+:root {
+  --background: 120 100% 4%;
+  --foreground: 120 100% 70%;
+  --border: 120 80% 25%;
+  --input: 120 80% 15%;
+  --ring: 120 100% 50%;
+  --card: 120 60% 7%;
+  --card-foreground: 120 100% 70%;
+  --primary: 120 100% 50%;
+  --primary-foreground: 120 100% 4%;
+  --secondary: 120 50% 15%;
+  --secondary-foreground: 120 100% 70%;
+  --muted: 120 40% 10%;
+  --muted-foreground: 120 50% 45%;
+  --accent: 120 100% 35%;
+  --accent-foreground: 120 100% 90%;
+  --destructive: 0 100% 50%;
+  --app-font-sans: 'Share Tech Mono', monospace;
+  --app-font-mono: 'Share Tech Mono', monospace;
+  --radius: 0.25rem;
+}
+
+@layer base {
+  * {
+    @apply border-border box-border;
+  }
+  body {
+    @apply bg-background text-foreground font-mono antialiased;
+    background-color: hsl(120 100% 4%);
+    color: hsl(120 100% 70%);
+  }
+}
+
+/* CRT Scanline Effect - pointer-events: none is CRITICAL */
+.crt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.07) 0px,
+    rgba(0, 0, 0, 0.07) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+.crt-vignette {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9998;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
+}
+
+/* Glow text effect */
+.glow {
+  text-shadow: 0 0 10px #00FF00, 0 0 20px #00FF00, 0 0 40px #00FF00;
+}
+
+.glow-sm {
+  text-shadow: 0 0 5px #00FF00, 0 0 10px #00FF00;
+}
+
+.glow-red {
+  text-shadow: 0 0 10px #FF0000, 0 0 20px #FF0000;
+}
+
+.glow-amber {
+  text-shadow: 0 0 10px #FFC000, 0 0 20px #FFC000;
+}
+
+/* Pip-Boy border style */
+.pipboy-border {
+  border: 1px solid hsl(120 80% 25%);
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.2), inset 0 0 8px rgba(0, 255, 0, 0.05);
+}
+
+/* Screen shake animation */
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-4px, -2px); }
+  20% { transform: translate(4px, 2px); }
+  30% { transform: translate(-3px, 3px); }
+  40% { transform: translate(3px, -3px); }
+  50% { transform: translate(-2px, 2px); }
+  60% { transform: translate(2px, -2px); }
+  70% { transform: translate(-1px, 1px); }
+  80% { transform: translate(1px, -1px); }
+  90% { transform: translate(-1px, 0px); }
+}
+
+.screen-shake {
+  animation: screen-shake 0.4s ease-in-out;
+}
+
+/* Blink cursor for terminal */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.cursor-blink { animation: blink 1s step-start infinite; }
+
+/* Flicker for Pip-Boy boot */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.4; }
+  94% { opacity: 1; }
+  96% { opacity: 0.6; }
+  97% { opacity: 1; }
+}
+.flicker { animation: flicker 4s infinite; }
+
+/* Scanline overlay for game canvases */
+canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* Pip-Boy button */
+.pipboy-btn {
+  background: transparent;
+  border: 1px solid hsl(120 80% 35%);
+  color: hsl(120 100% 65%);
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.1s;
+  box-shadow: 0 0 6px rgba(0, 255, 0, 0.15);
+}
+.pipboy-btn:hover {
+  background: hsl(120 100% 15%);
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+  color: hsl(120 100% 80%);
+}
+.pipboy-btn:active {
+  background: hsl(120 100% 25%);
+}
+.pipboy-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: hsl(120 100% 4%); }
+::-webkit-scrollbar-thumb { background: hsl(120 60% 25%); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(120 100% 40%); }
