@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-
-const player_speed = 5;
-const enemy_spawn_rate = 1.2;
-const theme_glow = "0 0 10px #00FF00";
+import { useApp } from "../context/AppContext";
+import { getHighScore, submitHighScore } from "../lib/highscore";
 
 const CANVAS_W = 600;
 const CANVAS_H = 300;
@@ -164,9 +162,12 @@ export default function RadiationRunner() {
     radsAccum: 0,
   });
   const animRef = useRef<number>(0);
+  const { t } = useApp();
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [started, setStarted] = useState(false);
+  const [best, setBest] = useState(() => getHighScore("runner"));
+  const [newRecord, setNewRecord] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -254,6 +255,9 @@ export default function RadiationRunner() {
           }
           gs.gameOver = true;
           gs.running = false;
+          const isRec = submitHighScore("runner", gs.score, "max");
+          setBest(getHighScore("runner"));
+          setNewRecord(isRec);
           setGameOver(true);
           break;
         }
@@ -360,6 +364,7 @@ export default function RadiationRunner() {
     gs.keys = {};
     setScore(0);
     setGameOver(false);
+    setNewRecord(false);
     setStarted(true);
     cancelAnimationFrame(animRef.current);
     animRef.current = requestAnimationFrame(gameLoop);
@@ -372,6 +377,7 @@ export default function RadiationRunner() {
       <div className="text-center">
         <div className="text-xs uppercase tracking-widest text-green-500/70 mb-1">Radiation Runner v1.0</div>
         <div className="glow text-green-400 text-sm">RADS SURVIVED: {score}</div>
+        <div className="text-xs text-green-500/70 mt-1">{t("record.best")}: {best}</div>
       </div>
 
       <div className="relative pipboy-border">
@@ -395,7 +401,10 @@ export default function RadiationRunner() {
         {gameOver && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
             <div className="glow-red text-red-400 text-2xl mb-2 font-mono">IRRADIATED!</div>
-            <div className="text-green-400 text-sm mb-4">Rads Survived: {score}</div>
+            <div className="text-green-400 text-sm mb-1">Rads Survived: {score}</div>
+            {newRecord
+              ? <div className="glow text-green-300 text-sm mb-4 flicker">★ {t("record.new")} ★</div>
+              : <div className="text-green-500/70 text-xs mb-4">{t("record.best")}: {best}</div>}
             <button className="pipboy-btn" onClick={startGame}>[ TRY AGAIN ]</button>
           </div>
         )}

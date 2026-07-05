@@ -43,6 +43,11 @@ const TRANSLATIONS: Record<string, Record<Language, string>> = {
   "game.runner.name":    { en: "RADIATION RUNNER", es: "CORREDOR RADIACTIVO" },
   "game.runner.desc":    { en: "Infinite runner. Jump over obstacles and survive as long as possible.", es: "Corredor infinito. Salta obstáculos y sobrevive el mayor tiempo posible." },
   "game.runner.tag":     { en: "[ RUNNER ]", es: "[ CORREDOR ]" },
+  "game.terminal.name":  { en: "TERMINAL HACKER", es: "HACKER DE TERMINAL" },
+  "game.terminal.desc":  { en: "RobCo hacking minigame. Crack the password to unlock classified files.", es: "Minijuego de hackeo RobCo. Descifra la contraseña para abrir archivos clasificados." },
+  "game.terminal.tag":   { en: "[ PUZZLE ]", es: "[ PUZZLE ]" },
+  "record.best":         { en: "BEST", es: "RÉCORD" },
+  "record.new":          { en: "NEW RECORD!", es: "¡NUEVO RÉCORD!" },
   "chess.mode.hvh":      { en: "Human vs Human", es: "Humano vs Humano" },
   "chess.mode.hvai":     { en: "Human vs AI", es: "Humano vs IA" },
   "chess.reset":         { en: "RESET", es: "REINICIAR" },
@@ -81,6 +86,17 @@ const TRANSLATIONS: Record<string, Record<Language, string>> = {
   "sol.new":             { en: "NEW GAME", es: "NUEVO JUEGO" },
   "sol.score":           { en: "SCORE", es: "PUNTOS" },
   "sol.win":             { en: "YOU WIN!", es: "¡GANASTE!" },
+  "term.title":          { en: "VAULT-TEC TERMINAL", es: "TERMINAL VAULT-TEC" },
+  "term.intro":          { en: "Crack the password to unlock a classified file. You get 4 attempts. After each guess you see how many letters match exactly.", es: "Descifra la contraseña para abrir un archivo clasificado. Tienes 4 intentos. Tras cada intento verás cuántas letras coinciden exactamente." },
+  "term.difficulty":     { en: "SELECT DIFFICULTY:", es: "SELECCIONA DIFICULTAD:" },
+  "term.4letter":        { en: "[ 4-LETTER WORDS ]", es: "[ PALABRAS DE 4 LETRAS ]" },
+  "term.5letter":        { en: "[ 5-LETTER WORDS ]", es: "[ PALABRAS DE 5 LETRAS ]" },
+  "term.candidates":     { en: "PASSWORD CANDIDATES:", es: "CONTRASEÑAS POSIBLES:" },
+  "term.output":         { en: "TERMINAL OUTPUT:", es: "SALIDA DE TERMINAL:" },
+  "term.attempts":       { en: "ATTEMPTS:", es: "INTENTOS:" },
+  "term.tryagain":       { en: "[ TRY AGAIN ]", es: "[ REINTENTAR ]" },
+  "term.menu":           { en: "[ MENU ]", es: "[ MENÚ ]" },
+  "term.streak":         { en: "STREAK", es: "RACHA" },
   "launch":              { en: "LAUNCH", es: "INICIAR" },
   "boot.init":           { en: "INITIALIZING FERDREX SYSTEM...", es: "INICIALIZANDO SISTEMA FERDREX..." },
   "boot.memory":         { en: "MEMORY OK: 64KB", es: "MEMORIA OK: 64KB" },
@@ -153,18 +169,43 @@ const THEME_COLORS: Record<Theme, { primary: string; glow: string; cssVars: Reco
 
 const AppContext = createContext<AppContextType | null>(null);
 
+const SETTINGS_KEY = "drex-arcade-settings";
+const DEFAULT_SETTINGS: AppSettings = { language: "en", theme: "green", scale: "desktop" };
+
+function loadSettings(): AppSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<AppSettings>;
+      // Only accept known values to avoid corrupt storage breaking the app.
+      const theme = ["green", "amber", "blue", "red"].includes(parsed.theme as string) ? parsed.theme! : DEFAULT_SETTINGS.theme;
+      const language = ["en", "es"].includes(parsed.language as string) ? parsed.language! : DEFAULT_SETTINGS.language;
+      const scale = ["desktop", "mobile"].includes(parsed.scale as string) ? parsed.scale! : DEFAULT_SETTINGS.scale;
+      return { theme, language, scale };
+    }
+  } catch {
+    // ignore malformed storage
+  }
+  return DEFAULT_SETTINGS;
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<AppSettings>({
-    language: "en",
-    theme: "green",
-    scale: "desktop",
-  });
+  const [settings, setSettings] = useState<AppSettings>(loadSettings);
 
   const setLanguage = (language: Language) => setSettings(s => ({ ...s, language }));
   const setTheme = (theme: Theme) => setSettings(s => ({ ...s, theme }));
   const setScale = (scale: Scale) => setSettings(s => ({ ...s, scale }));
 
   const t = (key: string): string => TRANSLATIONS[key]?.[settings.language] ?? key;
+
+  // Persist preferences so they survive reloads.
+  useEffect(() => {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch {
+      // ignore storage errors (private mode, quota, etc.)
+    }
+  }, [settings]);
 
   useEffect(() => {
     const vars = THEME_COLORS[settings.theme].cssVars;

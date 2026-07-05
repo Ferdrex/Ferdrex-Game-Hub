@@ -3,10 +3,11 @@ import ChessGame from "./games/ChessGame";
 import LaserAdventure from "./games/LaserAdventure";
 import CardGames from "./games/CardGames";
 import RadiationRunner from "./games/RadiationRunner";
+import TerminalHacker from "./games/TerminalHacker";
 import { useApp } from "./context/AppContext";
 import SettingsPanel from "./components/SettingsPanel";
 
-type GameId = "menu" | "chess" | "laser" | "cards" | "runner";
+type GameId = "menu" | "chess" | "laser" | "cards" | "runner" | "terminal";
 
 const GAMES = [
   {
@@ -40,6 +41,14 @@ const GAMES = [
     descKey: "game.runner.desc",
     tagKey: "game.runner.tag",
     colorOffset: 3,
+  },
+  {
+    id: "terminal" as GameId,
+    nameKey: "game.terminal.name",
+    version: "v3.0",
+    descKey: "game.terminal.desc",
+    tagKey: "game.terminal.tag",
+    colorOffset: 4,
   },
 ];
 
@@ -93,10 +102,10 @@ function BootScreen({ onDone }: { onDone: () => void }) {
 
 // Card accent colors per theme (4 variants per theme)
 const CARD_COLORS: Record<string, string[]> = {
-  green: ["#00FF00","#00FFCC","#AAFF44","#00FF88"],
-  amber: ["#FFC000","#FF9900","#FFD966","#FFAA33"],
-  blue:  ["#00CCFF","#0088FF","#44DDFF","#00AACC"],
-  red:   ["#FF4444","#FF6633","#FF4488","#FF8833"],
+  green: ["#00FF00","#00FFCC","#AAFF44","#00FF88","#66FF00"],
+  amber: ["#FFC000","#FF9900","#FFD966","#FFAA33","#FFB800"],
+  blue:  ["#00CCFF","#0088FF","#44DDFF","#00AACC","#33BBFF"],
+  red:   ["#FF4444","#FF6633","#FF4488","#FF8833","#FF5555"],
 };
 
 function MainMenu({ onSelect }: { onSelect: (id: GameId) => void }) {
@@ -254,6 +263,7 @@ export default function App() {
             {activeGame === "laser" && <LaserAdventure />}
             {activeGame === "cards" && <CardGames />}
             {activeGame === "runner" && <RadiationRunner />}
+            {activeGame === "terminal" && <TerminalHacker />}
           </div>
         </div>
       )}
