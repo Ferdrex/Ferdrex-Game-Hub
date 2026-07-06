@@ -17,6 +17,7 @@ type GameId = "menu" | "chess" | "laser" | "cards" | "runner" | "terminal" | "sn
 const GAMES = [
   {
     id: "chess" as GameId,
+    emoji: "♟️",
     nameKey: "game.chess.name",
     version: "v1.0",
     descKey: "game.chess.desc",
@@ -25,6 +26,7 @@ const GAMES = [
   },
   {
     id: "laser" as GameId,
+    emoji: "👾",
     nameKey: "game.laser.name",
     version: "v2.1",
     descKey: "game.laser.desc",
@@ -33,6 +35,7 @@ const GAMES = [
   },
   {
     id: "cards" as GameId,
+    emoji: "🃏",
     nameKey: "game.cards.name",
     version: "v3.0",
     descKey: "game.cards.desc",
@@ -41,6 +44,7 @@ const GAMES = [
   },
   {
     id: "runner" as GameId,
+    emoji: "☢️",
     nameKey: "game.runner.name",
     version: "v1.0",
     descKey: "game.runner.desc",
@@ -49,6 +53,7 @@ const GAMES = [
   },
   {
     id: "terminal" as GameId,
+    emoji: "💻",
     nameKey: "game.terminal.name",
     version: "v3.0",
     descKey: "game.terminal.desc",
@@ -57,6 +62,7 @@ const GAMES = [
   },
   {
     id: "snake" as GameId,
+    emoji: "🐍",
     nameKey: "game.snake.name",
     version: "v1.0",
     descKey: "game.snake.desc",
@@ -65,6 +71,7 @@ const GAMES = [
   },
   {
     id: "tetris" as GameId,
+    emoji: "🧱",
     nameKey: "game.tetris.name",
     version: "v1.0",
     descKey: "game.tetris.desc",
@@ -73,6 +80,7 @@ const GAMES = [
   },
   {
     id: "2048" as GameId,
+    emoji: "🔢",
     nameKey: "game.2048.name",
     version: "v1.0",
     descKey: "game.2048.desc",
@@ -81,6 +89,7 @@ const GAMES = [
   },
   {
     id: "mines" as GameId,
+    emoji: "💣",
     nameKey: "game.mines.name",
     version: "v1.0",
     descKey: "game.mines.desc",
@@ -89,6 +98,7 @@ const GAMES = [
   },
   {
     id: "quiniela" as GameId,
+    emoji: "⚽",
     nameKey: "game.quiniela.name",
     version: "2026",
     descKey: "game.quiniela.desc",
@@ -233,8 +243,9 @@ function MainMenu({ onSelect, canInstall, onInstall }: { onSelect: (id: GameId) 
               }}
             >
               <div className="flex justify-between items-start mb-2">
-                <div className="text-lg font-mono font-bold"
+                <div className="text-lg font-mono font-bold flex items-center gap-2"
                   style={{ color: cc, textShadow: hovered ? `0 0 10px ${cc}` : "none" }}>
+                  <span style={{ textShadow: "none" }}>{game.emoji}</span>
                   {t(game.nameKey)}
                 </div>
                 <div className="text-xs" style={{ color: `${cc}66` }}>{game.version}</div>
