@@ -3,9 +3,9 @@ import { useApp } from "../context/AppContext";
 import { submitPrediction } from "../lib/predictions";
 
 // Teams still alive in the tournament (update as matches are played).
-// Eliminated so far: México (lost 2-3 to Inglaterra).
+// Eliminated so far: México (lost 2-3 to Inglaterra), Portugal (lost 0-1 to España).
 const TEAMS = [
-  "Inglaterra", "Portugal", "España", "Estados Unidos", "Bélgica",
+  "Inglaterra", "España", "Estados Unidos", "Bélgica",
   "Argentina", "Egipto", "Suiza", "Colombia", "Francia", "Marruecos",
 ];
 
@@ -15,7 +15,7 @@ const TEAMS = [
 type MatchResult = "A" | "B" | null;
 type Match = { id: string; a: string; b: string; probA: number; score: string; es: string; en: string; result: MatchResult };
 const MATCHES: Match[] = [
-  { id: "r16-por-esp", a: "Portugal", b: "España", probA: 0.47, score: "1-2", result: null,
+  { id: "r16-por-esp", a: "Portugal", b: "España", probA: 0.47, score: "0-1", result: "B",
     es: "Derbi ibérico. España domina la posesión y el mediocampo; Portugal es letal a la contra con sus figuras. Ligera ventaja española.",
     en: "Iberian derby. Spain controls possession and midfield; Portugal is lethal on the break. Slight edge to Spain." },
   { id: "r16-usa-bel", a: "Estados Unidos", b: "Bélgica", probA: 0.45, score: "1-2", result: null,
