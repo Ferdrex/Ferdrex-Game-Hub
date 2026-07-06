@@ -8,10 +8,11 @@ import SnakeGame from "./games/SnakeGame";
 import Tetris from "./games/Tetris";
 import Game2048 from "./games/Game2048";
 import Minesweeper from "./games/Minesweeper";
+import WorldCup2026 from "./games/WorldCup2026";
 import { useApp } from "./context/AppContext";
 import SettingsPanel from "./components/SettingsPanel";
 
-type GameId = "menu" | "chess" | "laser" | "cards" | "runner" | "terminal" | "snake" | "tetris" | "2048" | "mines";
+type GameId = "menu" | "chess" | "laser" | "cards" | "runner" | "terminal" | "snake" | "tetris" | "2048" | "mines" | "quiniela";
 
 const GAMES = [
   {
@@ -86,6 +87,14 @@ const GAMES = [
     tagKey: "game.mines.tag",
     colorOffset: 8,
   },
+  {
+    id: "quiniela" as GameId,
+    nameKey: "game.quiniela.name",
+    version: "2026",
+    descKey: "game.quiniela.desc",
+    tagKey: "game.quiniela.tag",
+    colorOffset: 9,
+  },
 ];
 
 function BootScreen({ onDone }: { onDone: () => void }) {
@@ -138,10 +147,10 @@ function BootScreen({ onDone }: { onDone: () => void }) {
 
 // Card accent colors per theme (4 variants per theme)
 const CARD_COLORS: Record<string, string[]> = {
-  green: ["#00FF00","#00FFCC","#AAFF44","#00FF88","#66FF00","#33FFAA","#88FF00","#00FFAA","#CCFF33"],
-  amber: ["#FFC000","#FF9900","#FFD966","#FFAA33","#FFB800","#FFCC44","#FF8800","#FFDD22","#FFA500"],
-  blue:  ["#00CCFF","#0088FF","#44DDFF","#00AACC","#33BBFF","#0099FF","#66CCFF","#00BBEE","#22AAFF"],
-  red:   ["#FF4444","#FF6633","#FF4488","#FF8833","#FF5555","#FF7744","#FF3366","#FF9955","#FF6666"],
+  green: ["#00FF00","#00FFCC","#AAFF44","#00FF88","#66FF00","#33FFAA","#88FF00","#00FFAA","#CCFF33","#44FFDD"],
+  amber: ["#FFC000","#FF9900","#FFD966","#FFAA33","#FFB800","#FFCC44","#FF8800","#FFDD22","#FFA500","#FFE066"],
+  blue:  ["#00CCFF","#0088FF","#44DDFF","#00AACC","#33BBFF","#0099FF","#66CCFF","#00BBEE","#22AAFF","#55DDFF"],
+  red:   ["#FF4444","#FF6633","#FF4488","#FF8833","#FF5555","#FF7744","#FF3366","#FF9955","#FF6666","#FF5588"],
 };
 
 function MainMenu({ onSelect }: { onSelect: (id: GameId) => void }) {
@@ -304,6 +313,7 @@ export default function App() {
             {activeGame === "tetris" && <Tetris />}
             {activeGame === "2048" && <Game2048 />}
             {activeGame === "mines" && <Minesweeper />}
+            {activeGame === "quiniela" && <WorldCup2026 />}
           </div>
         </div>
       )}
