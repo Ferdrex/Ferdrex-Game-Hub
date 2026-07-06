@@ -25,6 +25,8 @@ const TRANSLATIONS: Record<string, Record<Language, string>> = {
   "app.version":         { en: "GAME COLLECTION", es: "COLECCIÓN DE JUEGOS" },
   "menu.back":           { en: "← MENU", es: "← MENÚ" },
   "menu.settings":       { en: "SETTINGS", es: "AJUSTES" },
+  "menu.install":        { en: "INSTALL APP", es: "INSTALAR APP" },
+  "boot.skip":           { en: "SKIP", es: "SALTAR" },
   "menu.language":       { en: "Language", es: "Idioma" },
   "menu.theme":          { en: "Theme", es: "Tema" },
   "menu.scale":          { en: "Display", es: "Pantalla" },

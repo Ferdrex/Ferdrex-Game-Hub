@@ -44,6 +44,7 @@
   --accent: 120 100% 35%;
   --accent-foreground: 120 100% 90%;
   --destructive: 0 100% 50%;
+  --theme-color: #00FF00;
   --app-font-sans: 'Share Tech Mono', monospace;
   --app-font-mono: 'Share Tech Mono', monospace;
   --radius: 0.25rem;
@@ -89,13 +90,13 @@
   background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
 }
 
-/* Glow text effect */
+/* Glow text effect (follows the active theme colour) */
 .glow {
-  text-shadow: 0 0 10px #00FF00, 0 0 20px #00FF00, 0 0 40px #00FF00;
+  text-shadow: 0 0 10px var(--theme-color), 0 0 20px var(--theme-color), 0 0 40px var(--theme-color);
 }
 
 .glow-sm {
-  text-shadow: 0 0 5px #00FF00, 0 0 10px #00FF00;
+  text-shadow: 0 0 5px var(--theme-color), 0 0 10px var(--theme-color);
 }
 
 .glow-red {
@@ -106,10 +107,11 @@
   text-shadow: 0 0 10px #FFC000, 0 0 20px #FFC000;
 }
 
-/* Pip-Boy border style */
+/* Pip-Boy border style (follows the active theme colour) */
 .pipboy-border {
-  border: 1px solid hsl(120 80% 25%);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.2), inset 0 0 8px rgba(0, 255, 0, 0.05);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--theme-color) 22%, transparent),
+              inset 0 0 8px color-mix(in srgb, var(--theme-color) 6%, transparent);
 }
 
 /* Screen shake animation */
@@ -148,6 +150,17 @@
 }
 .flicker { animation: flicker 4s infinite; }
 
+/* Smooth fade when switching between menu and a game */
+@keyframes view-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.view-fade { animation: view-fade 0.28s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .view-fade, .flicker, .cursor-blink { animation: none; }
+}
+
 /* Scanline overlay for game canvases */
 canvas {
   display: block;
@@ -157,26 +170,26 @@ canvas {
   height: auto;
 }
 
-/* Pip-Boy button */
+/* Pip-Boy button (follows the active theme colour) */
 .pipboy-btn {
   background: transparent;
-  border: 1px solid hsl(120 80% 35%);
-  color: hsl(120 100% 65%);
+  border: 1px solid color-mix(in srgb, var(--theme-color) 55%, transparent);
+  color: hsl(var(--foreground));
   font-family: 'Share Tech Mono', monospace;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   padding: 0.5rem 1.25rem;
   cursor: pointer;
   transition: all 0.1s;
-  box-shadow: 0 0 6px rgba(0, 255, 0, 0.15);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--theme-color) 15%, transparent);
 }
 .pipboy-btn:hover {
-  background: hsl(120 100% 15%);
-  box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
-  color: hsl(120 100% 80%);
+  background: color-mix(in srgb, var(--theme-color) 14%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--theme-color) 40%, transparent);
+  color: hsl(var(--foreground));
 }
 .pipboy-btn:active {
-  background: hsl(120 100% 25%);
+  background: color-mix(in srgb, var(--theme-color) 25%, transparent);
 }
 .pipboy-btn:disabled {
   opacity: 0.4;
@@ -185,6 +198,6 @@ canvas {
 
 /* Scrollbar styling */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: hsl(120 100% 4%); }
-::-webkit-scrollbar-thumb { background: hsl(120 60% 25%); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(120 100% 40%); }
+::-webkit-scrollbar-track { background: hsl(var(--background)); }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--theme-color) 40%, transparent); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--theme-color); }

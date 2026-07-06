@@ -132,7 +132,7 @@ function BootScreen({ onDone }: { onDone: () => void }) {
   }, [onDone]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black">
       <div className="font-mono text-green-400 text-sm max-w-lg w-full px-8">
         {lines.map((line, i) => (
           <div key={i} className={typeof line === "string" && (line.startsWith("WELCOME") || line.startsWith("BIENVENIDO")) ? "glow text-green-300" : ""}>
@@ -141,6 +141,12 @@ function BootScreen({ onDone }: { onDone: () => void }) {
         ))}
         <span className="cursor-blink">█</span>
       </div>
+      <button
+        className="pipboy-btn text-xs mt-8 opacity-70 hover:opacity-100"
+        onClick={onDone}
+      >
+        {t("boot.skip")} ▶▶
+      </button>
     </div>
   );
 }
@@ -153,7 +159,7 @@ const CARD_COLORS: Record<string, string[]> = {
   red:   ["#FF4444","#FF6633","#FF4488","#FF8833","#FF5555","#FF7744","#FF3366","#FF9955","#FF6666","#FF5588"],
 };
 
-function MainMenu({ onSelect }: { onSelect: (id: GameId) => void }) {
+function MainMenu({ onSelect, canInstall, onInstall }: { onSelect: (id: GameId) => void; canInstall?: boolean; onInstall?: () => void }) {
   const { t, settings } = useApp();
   const [hoveredId, setHoveredId] = useState<GameId | null>(null);
   const [tick, setTick] = useState(0);
@@ -245,8 +251,13 @@ function MainMenu({ onSelect }: { onSelect: (id: GameId) => void }) {
         })}
       </div>
 
-      {/* Settings button */}
-      <div className="w-full max-w-2xl mt-6 flex justify-end">
+      {/* Settings + install buttons */}
+      <div className="w-full max-w-2xl mt-6 flex justify-end gap-2">
+        {canInstall && (
+          <button className="pipboy-btn text-xs" onClick={onInstall}>
+            📲 {t("menu.install")}
+          </button>
+        )}
         <button className="pipboy-btn text-xs" onClick={() => setShowSettings(true)}>
           ⚙ {t("menu.settings")}
         </button>
@@ -264,9 +275,12 @@ function MainMenu({ onSelect }: { onSelect: (id: GameId) => void }) {
   );
 }
 
+type BIPEvent = Event & { prompt: () => Promise<void> };
+
 export default function App() {
   const [booted, setBooted] = useState(false);
   const [activeGame, setActiveGame] = useState<GameId>("menu");
+  const [installEvt, setInstallEvt] = useState<BIPEvent | null>(null);
   const { t, settings } = useApp();
 
   const tc = settings.theme === "amber" ? "#FFC000"
@@ -274,9 +288,36 @@ export default function App() {
     : settings.theme === "red" ? "#FF4444"
     : "#00FF00";
 
-  const handleSelect = (id: GameId) => setActiveGame(id);
+  const handleSelect = (id: GameId) => { navigator.vibrate?.(12); setActiveGame(id); };
   const handleBack = () => setActiveGame("menu");
   const handleBooted = useCallback(() => setBooted(true), []);
+
+  // Capture the PWA install prompt so we can offer an "Install app" button.
+  useEffect(() => {
+    const onBIP = (e: Event) => { e.preventDefault(); setInstallEvt(e as BIPEvent); };
+    const onInstalled = () => setInstallEvt(null);
+    window.addEventListener("beforeinstallprompt", onBIP);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBIP);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  // Light haptic feedback on every Pip-Boy button (mobile only; no-op elsewhere).
+  useEffect(() => {
+    const onTap = (e: PointerEvent) => {
+      if ((e.target as HTMLElement).closest?.(".pipboy-btn")) navigator.vibrate?.(10);
+    };
+    document.addEventListener("pointerdown", onTap);
+    return () => document.removeEventListener("pointerdown", onTap);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installEvt) return;
+    await installEvt.prompt();
+    setInstallEvt(null);
+  };
 
   if (!booted) return <BootScreen onDone={handleBooted} />;
 
@@ -285,8 +326,9 @@ export default function App() {
       <div className="crt-overlay" style={{ pointerEvents: "none" }} />
       <div className="crt-vignette" style={{ pointerEvents: "none" }} />
 
+      <div key={activeGame} className="view-fade">
       {activeGame === "menu" ? (
-        <MainMenu onSelect={handleSelect} />
+        <MainMenu onSelect={handleSelect} canInstall={!!installEvt} onInstall={handleInstall} />
       ) : (
         <div className="min-h-screen flex flex-col">
           <div
@@ -317,6 +359,7 @@ export default function App() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
