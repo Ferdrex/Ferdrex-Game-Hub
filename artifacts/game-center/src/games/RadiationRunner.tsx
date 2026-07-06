@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useApp } from "../context/AppContext";
 import { getHighScore, submitHighScore } from "../lib/highscore";
+import Leaderboard from "../components/Leaderboard";
 
 const CANVAS_W = 600;
 const CANVAS_H = 300;
@@ -168,6 +169,7 @@ export default function RadiationRunner() {
   const [started, setStarted] = useState(false);
   const [best, setBest] = useState(() => getHighScore("runner"));
   const [newRecord, setNewRecord] = useState(false);
+  const [showLb, setShowLb] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -405,7 +407,10 @@ export default function RadiationRunner() {
             {newRecord
               ? <div className="glow text-green-300 text-sm mb-4 flicker">★ {t("record.new")} ★</div>
               : <div className="text-green-500/70 text-xs mb-4">{t("record.best")}: {best}</div>}
-            <button className="pipboy-btn" onClick={startGame}>[ TRY AGAIN ]</button>
+            <div className="flex gap-2 flex-wrap justify-center">
+              <button className="pipboy-btn" onClick={startGame}>[ TRY AGAIN ]</button>
+              <button className="pipboy-btn" onClick={() => setShowLb(true)}>🏆 {t("lb.view")}</button>
+            </div>
           </div>
         )}
       </div>
@@ -413,6 +418,10 @@ export default function RadiationRunner() {
       <div className="text-xs text-green-600 text-center">
         SPACE or ↑ Arrow to jump • Avoid all obstacles
       </div>
+
+      {showLb && (
+        <Leaderboard game="runner" title="RADIATION RUNNER" score={score} onClose={() => setShowLb(false)} />
+      )}
     </div>
   );
 }

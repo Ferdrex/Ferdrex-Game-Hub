@@ -262,7 +262,7 @@ function rankIndex(r:CardRank):number{
   return RANKS.indexOf(r);
 }
 
-function evaluatePokerHand(cards:Card[]):{idx:number;name:string;pay:number}{
+function evaluatePokerHand(cards:Card[]):{idx:number;name:string;namees:string;pay:number}{
   const sorted=[...cards].sort((a,b)=>rankIndex(a.rank)-rankIndex(b.rank));
   const ranks=sorted.map(c=>rankIndex(c.rank));
   const suits=sorted.map(c=>c.suit);
