@@ -4,10 +4,14 @@ import LaserAdventure from "./games/LaserAdventure";
 import CardGames from "./games/CardGames";
 import RadiationRunner from "./games/RadiationRunner";
 import TerminalHacker from "./games/TerminalHacker";
+import SnakeGame from "./games/SnakeGame";
+import Tetris from "./games/Tetris";
+import Game2048 from "./games/Game2048";
+import Minesweeper from "./games/Minesweeper";
 import { useApp } from "./context/AppContext";
 import SettingsPanel from "./components/SettingsPanel";
 
-type GameId = "menu" | "chess" | "laser" | "cards" | "runner" | "terminal";
+type GameId = "menu" | "chess" | "laser" | "cards" | "runner" | "terminal" | "snake" | "tetris" | "2048" | "mines";
 
 const GAMES = [
   {
@@ -49,6 +53,38 @@ const GAMES = [
     descKey: "game.terminal.desc",
     tagKey: "game.terminal.tag",
     colorOffset: 4,
+  },
+  {
+    id: "snake" as GameId,
+    nameKey: "game.snake.name",
+    version: "v1.0",
+    descKey: "game.snake.desc",
+    tagKey: "game.snake.tag",
+    colorOffset: 5,
+  },
+  {
+    id: "tetris" as GameId,
+    nameKey: "game.tetris.name",
+    version: "v1.0",
+    descKey: "game.tetris.desc",
+    tagKey: "game.tetris.tag",
+    colorOffset: 6,
+  },
+  {
+    id: "2048" as GameId,
+    nameKey: "game.2048.name",
+    version: "v1.0",
+    descKey: "game.2048.desc",
+    tagKey: "game.2048.tag",
+    colorOffset: 7,
+  },
+  {
+    id: "mines" as GameId,
+    nameKey: "game.mines.name",
+    version: "v1.0",
+    descKey: "game.mines.desc",
+    tagKey: "game.mines.tag",
+    colorOffset: 8,
   },
 ];
 
@@ -102,10 +138,10 @@ function BootScreen({ onDone }: { onDone: () => void }) {
 
 // Card accent colors per theme (4 variants per theme)
 const CARD_COLORS: Record<string, string[]> = {
-  green: ["#00FF00","#00FFCC","#AAFF44","#00FF88","#66FF00"],
-  amber: ["#FFC000","#FF9900","#FFD966","#FFAA33","#FFB800"],
-  blue:  ["#00CCFF","#0088FF","#44DDFF","#00AACC","#33BBFF"],
-  red:   ["#FF4444","#FF6633","#FF4488","#FF8833","#FF5555"],
+  green: ["#00FF00","#00FFCC","#AAFF44","#00FF88","#66FF00","#33FFAA","#88FF00","#00FFAA","#CCFF33"],
+  amber: ["#FFC000","#FF9900","#FFD966","#FFAA33","#FFB800","#FFCC44","#FF8800","#FFDD22","#FFA500"],
+  blue:  ["#00CCFF","#0088FF","#44DDFF","#00AACC","#33BBFF","#0099FF","#66CCFF","#00BBEE","#22AAFF"],
+  red:   ["#FF4444","#FF6633","#FF4488","#FF8833","#FF5555","#FF7744","#FF3366","#FF9955","#FF6666"],
 };
 
 function MainMenu({ onSelect }: { onSelect: (id: GameId) => void }) {
@@ -264,6 +300,10 @@ export default function App() {
             {activeGame === "cards" && <CardGames />}
             {activeGame === "runner" && <RadiationRunner />}
             {activeGame === "terminal" && <TerminalHacker />}
+            {activeGame === "snake" && <SnakeGame />}
+            {activeGame === "tetris" && <Tetris />}
+            {activeGame === "2048" && <Game2048 />}
+            {activeGame === "mines" && <Minesweeper />}
           </div>
         </div>
       )}
