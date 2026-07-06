@@ -1,4 +1,4 @@
-import { useApp, Theme, Language } from "../context/AppContext";
+import { useApp, Theme, Language, ControlSize } from "../context/AppContext";
 
 const THEMES: { id: Theme; label: string; color: string }[] = [
   { id: "green", label: "GREEN", color: "#00FF00" },
@@ -8,7 +8,12 @@ const THEMES: { id: Theme; label: string; color: string }[] = [
 ];
 
 export default function SettingsPanel({ onClose }: { onClose: () => void }) {
-  const { t, settings, setLanguage, setTheme, setScale } = useApp();
+  const { t, settings, setLanguage, setTheme, setScale, setControlSize } = useApp();
+  const CTRL_SIZES: { id: ControlSize; key: string }[] = [
+    { id: "sm", key: "menu.ctrl.sm" },
+    { id: "md", key: "menu.ctrl.md" },
+    { id: "lg", key: "menu.ctrl.lg" },
+  ];
 
   const tc = settings.theme === "amber" ? "#FFC000"
     : settings.theme === "blue" ? "#00CCFF"
@@ -101,6 +106,32 @@ export default function SettingsPanel({ onClose }: { onClose: () => void }) {
                 {sc === "desktop" ? t("menu.desktop").toUpperCase() : t("menu.mobile").toUpperCase()}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Touch controls size */}
+        <div className="mb-5">
+          <div className="text-xs mb-2" style={{ color: `${tc}aa` }}>{t("menu.controls").toUpperCase()}</div>
+          <div className="flex gap-2">
+            {CTRL_SIZES.map(cs => (
+              <button
+                key={cs.id}
+                onClick={() => setControlSize(cs.id)}
+                className="pipboy-btn text-xs flex-1 py-2"
+                style={{
+                  background: settings.controlSize === cs.id ? `${tc}22` : "transparent",
+                  borderColor: settings.controlSize === cs.id ? tc : `${tc}44`,
+                  color: settings.controlSize === cs.id ? tc : `${tc}88`,
+                  boxShadow: settings.controlSize === cs.id ? `0 0 8px ${tc}44` : "none",
+                }}
+              >
+                {t(cs.key)}
+              </button>
+            ))}
+          </div>
+          {/* Live preview of the D-pad size */}
+          <div className="flex justify-center mt-3">
+            <span className="dpad-btn pipboy-btn flex items-center justify-center" style={{ pointerEvents: "none" }}>▲</span>
           </div>
         </div>
 

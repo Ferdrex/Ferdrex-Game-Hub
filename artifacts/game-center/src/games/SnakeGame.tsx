@@ -200,14 +200,14 @@ export default function SnakeGame() {
 
       {/* On-screen D-pad */}
       <div className="flex flex-col items-center gap-2">
-        <button className="pipboy-btn text-xl w-14 h-12 flex items-center justify-center"
+        <button className="pipboy-btn dpad-btn"
           onPointerDown={(e) => { e.preventDefault(); setDir(0, -1); }} style={{ touchAction: "none" }}>▲</button>
         <div className="flex gap-2">
-          <button className="pipboy-btn text-xl w-14 h-12 flex items-center justify-center"
+          <button className="pipboy-btn dpad-btn"
             onPointerDown={(e) => { e.preventDefault(); setDir(-1, 0); }} style={{ touchAction: "none" }}>◀</button>
-          <button className="pipboy-btn text-xl w-14 h-12 flex items-center justify-center"
+          <button className="pipboy-btn dpad-btn"
             onPointerDown={(e) => { e.preventDefault(); setDir(0, 1); }} style={{ touchAction: "none" }}>▼</button>
-          <button className="pipboy-btn text-xl w-14 h-12 flex items-center justify-center"
+          <button className="pipboy-btn dpad-btn"
             onPointerDown={(e) => { e.preventDefault(); setDir(1, 0); }} style={{ touchAction: "none" }}>▶</button>
         </div>
       </div>

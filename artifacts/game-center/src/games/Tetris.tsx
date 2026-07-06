@@ -215,7 +215,7 @@ export default function Tetris() {
 
   const TouchBtn = ({ label, onPress }: { label: string; onPress: () => void }) => (
     <button
-      className="pipboy-btn text-lg py-3 flex-1"
+      className="pipboy-btn dpad-btn text-lg"
       onPointerDown={(e) => { e.preventDefault(); onPress(); }}
       style={{ touchAction: "none" }}
     >{label}</button>
@@ -257,13 +257,13 @@ export default function Tetris() {
       </div>
 
       {/* Touch controls */}
-      <div className="w-full max-w-[240px] flex flex-col gap-2">
-        <div className="flex gap-2">
+      <div className="flex flex-col gap-2 items-center">
+        <div className="flex gap-2 justify-center">
           <TouchBtn label="◀" onPress={() => move(-1)} />
           <TouchBtn label="⟳" onPress={rotate} />
           <TouchBtn label="▶" onPress={() => move(1)} />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-center">
           <TouchBtn label="▼" onPress={() => { softDrop(); draw(); }} />
           <TouchBtn label="⤓" onPress={hardDrop} />
         </div>

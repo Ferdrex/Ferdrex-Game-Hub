@@ -5,7 +5,7 @@ import { submitPrediction } from "../lib/predictions";
 // Teams still alive in the tournament (update as matches are played).
 // Eliminated so far: México (lost 2-3 to Inglaterra), Portugal (lost 0-1 to España).
 const TEAMS = [
-  "Inglaterra", "España", "Estados Unidos", "Bélgica",
+  "Inglaterra", "España", "Estados Unidos", "Bélgica", "Noruega",
   "Argentina", "Egipto", "Suiza", "Colombia", "Francia", "Marruecos",
 ];
 

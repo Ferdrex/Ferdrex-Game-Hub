@@ -3,11 +3,13 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 export type Language = "en" | "es";
 export type Theme = "green" | "amber" | "blue" | "red";
 export type Scale = "desktop" | "mobile";
+export type ControlSize = "sm" | "md" | "lg";
 
 export interface AppSettings {
   language: Language;
   theme: Theme;
   scale: Scale;
+  controlSize: ControlSize;
 }
 
 interface AppContextType {
@@ -15,8 +17,17 @@ interface AppContextType {
   setLanguage: (l: Language) => void;
   setTheme: (t: Theme) => void;
   setScale: (s: Scale) => void;
+  setControlSize: (c: ControlSize) => void;
   t: (key: string) => string;
 }
+
+// On-screen touch control dimensions per size (set as direct CSS vars — avoids
+// calc(rem * var) which Lightning CSS mis-optimizes).
+export const CONTROL_DIMS: Record<ControlSize, { w: string; h: string; fs: string; fire: string }> = {
+  sm: { w: "2.7rem", h: "2.5rem", fs: "1.1rem",  fire: "4rem" },
+  md: { w: "3.4rem", h: "3rem",   fs: "1.35rem", fire: "5rem" },
+  lg: { w: "4.6rem", h: "4.1rem", fs: "1.9rem",  fire: "6.6rem" },
+};
 
 const TRANSLATIONS: Record<string, Record<Language, string>> = {
   "app.title":           { en: "DREX ARCADE", es: "DREX ARCADE" },
@@ -32,6 +43,10 @@ const TRANSLATIONS: Record<string, Record<Language, string>> = {
   "menu.scale":          { en: "Display", es: "Pantalla" },
   "menu.desktop":        { en: "Desktop", es: "Escritorio" },
   "menu.mobile":         { en: "Mobile", es: "Móvil" },
+  "menu.controls":       { en: "Touch controls size", es: "Tamaño de controles" },
+  "menu.ctrl.sm":        { en: "SMALL", es: "PEQUEÑO" },
+  "menu.ctrl.md":        { en: "MEDIUM", es: "MEDIANO" },
+  "menu.ctrl.lg":        { en: "LARGE", es: "GRANDE" },
   "menu.close":          { en: "CLOSE", es: "CERRAR" },
   "game.chess.name":     { en: "CHESS", es: "AJEDREZ" },
   "game.chess.desc":     { en: "Classic chess. Play Human vs Human or challenge our AI.", es: "Ajedrez clásico. Juega Humano vs Humano o desafía nuestra IA." },
@@ -251,7 +266,7 @@ const THEME_COLORS: Record<Theme, { primary: string; glow: string; cssVars: Reco
 const AppContext = createContext<AppContextType | null>(null);
 
 const SETTINGS_KEY = "drex-arcade-settings";
-const DEFAULT_SETTINGS: AppSettings = { language: "en", theme: "green", scale: "desktop" };
+const DEFAULT_SETTINGS: AppSettings = { language: "en", theme: "green", scale: "desktop", controlSize: "md" };
 
 function loadSettings(): AppSettings {
   try {
@@ -262,7 +277,8 @@ function loadSettings(): AppSettings {
       const theme = ["green", "amber", "blue", "red"].includes(parsed.theme as string) ? parsed.theme! : DEFAULT_SETTINGS.theme;
       const language = ["en", "es"].includes(parsed.language as string) ? parsed.language! : DEFAULT_SETTINGS.language;
       const scale = ["desktop", "mobile"].includes(parsed.scale as string) ? parsed.scale! : DEFAULT_SETTINGS.scale;
-      return { theme, language, scale };
+      const controlSize = ["sm", "md", "lg"].includes(parsed.controlSize as string) ? parsed.controlSize! : DEFAULT_SETTINGS.controlSize;
+      return { theme, language, scale, controlSize };
     }
   } catch {
     // ignore malformed storage
@@ -276,6 +292,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setLanguage = (language: Language) => setSettings(s => ({ ...s, language }));
   const setTheme = (theme: Theme) => setSettings(s => ({ ...s, theme }));
   const setScale = (scale: Scale) => setSettings(s => ({ ...s, scale }));
+  const setControlSize = (controlSize: ControlSize) => setSettings(s => ({ ...s, controlSize }));
 
   const t = (key: string): string => TRANSLATIONS[key]?.[settings.language] ?? key;
 
@@ -294,8 +311,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
   }, [settings.theme]);
 
+  // Expose the on-screen control dimensions so touch buttons can size themselves.
+  useEffect(() => {
+    const d = CONTROL_DIMS[settings.controlSize];
+    const root = document.documentElement;
+    root.style.setProperty("--ctrl-w", d.w);
+    root.style.setProperty("--ctrl-h", d.h);
+    root.style.setProperty("--ctrl-fs", d.fs);
+    root.style.setProperty("--ctrl-fire", d.fire);
+  }, [settings.controlSize]);
+
   return (
-    <AppContext.Provider value={{ settings, setLanguage, setTheme, setScale, t }}>
+    <AppContext.Provider value={{ settings, setLanguage, setTheme, setScale, setControlSize, t }}>
       {children}
     </AppContext.Provider>
   );

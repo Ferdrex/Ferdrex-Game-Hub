@@ -488,14 +488,14 @@ export default function RadiationRunner() {
       </div>
 
       {/* On-screen controls */}
-      <div className="w-full max-w-[240px] flex gap-2">
+      <div className="flex gap-3 justify-center">
         <button
-          className="pipboy-btn text-2xl py-4 flex-1"
+          className="pipboy-btn dpad-btn text-2xl"
           onPointerDown={(e) => { e.preventDefault(); doJump(); }}
           style={{ touchAction: "none" }}
         >▲</button>
         <button
-          className="pipboy-btn text-2xl py-4 flex-1"
+          className="pipboy-btn dpad-btn text-2xl"
           onPointerDown={(e) => { e.preventDefault(); setDuck(true); }}
           onPointerUp={() => setDuck(false)}
           onPointerLeave={() => setDuck(false)}

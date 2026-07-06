@@ -474,7 +474,7 @@ export default function LaserAdventure() {
           </div>
         </div>
         <button
-          className="pipboy-btn text-sm w-20 h-20 rounded-full flex items-center justify-center"
+          className="pipboy-btn dpad-fire text-sm rounded-full flex items-center justify-center"
           onPointerDown={(e) => { e.preventDefault(); setKey("Space", true); }}
           onPointerUp={() => setKey("Space", false)}
           onPointerLeave={() => setKey("Space", false)}
@@ -492,7 +492,7 @@ export default function LaserAdventure() {
 function DPadBtn({ label, onDown, onUp }: { label: string; onDown: () => void; onUp: () => void }) {
   return (
     <button
-      className="pipboy-btn text-lg w-12 h-11 flex items-center justify-center"
+      className="pipboy-btn dpad-btn text-lg"
       onPointerDown={(e) => { e.preventDefault(); onDown(); }}
       onPointerUp={onUp}
       onPointerLeave={onUp}
