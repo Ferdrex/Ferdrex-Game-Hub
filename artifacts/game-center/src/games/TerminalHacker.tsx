@@ -216,7 +216,8 @@ export default function TerminalHacker() {
       let i = 0;
       const reveal = () => {
         if (i < file.content.length) {
-          setDisplayedLines(prev => [...prev, file.content[i]]);
+          const lineText = file.content[i]; // capture by value before the async updater reads a mutated i
+          setDisplayedLines(prev => [...prev, lineText]);
           i++;
           setTimeout(reveal, 120);
         } else {
@@ -382,7 +383,7 @@ export default function TerminalHacker() {
                 <div className="mt-2 border-t pt-2" style={{ borderColor: `${tc}44` }}>
                   <div className="mb-1" style={{ color: tc }}>--- {secretFile.filename} ---</div>
                   {displayedLines.map((line, i) => (
-                    <div key={i} style={{ color: line.startsWith(">>>") ? tc : `${tc}aa` }}>{line}</div>
+                    <div key={i} style={{ color: (line ?? "").startsWith(">>>") ? tc : `${tc}aa` }}>{line}</div>
                   ))}
                   {typing && <span className="cursor-blink">█</span>}
                 </div>
