@@ -4,6 +4,49 @@ import { getHighScore, submitHighScore } from "../lib/highscore";
 
 const GLOW = "0 0 10px #00FF00";
 
+// ---- Fallout-style memory dump with clickable symbol brackets ----
+const JUNK_CHARS = "!@#$%^&*-+=?~/\\|_:;.,°¬";
+const BRACKETS: [string, string][] = [["<", ">"], ["[", "]"], ["{", "}"], ["(", ")"]];
+
+type SymEffect = "dud" | "reset";
+type Sym = { id: number; cluster: string; effect: SymEffect; used: boolean };
+type MemPart = { kind: "junk"; text: string } | { kind: "sym"; id: number };
+type MemLine = { addr: string; parts: MemPart[] };
+
+function randChars(pool: string, n: number): string {
+  let s = "";
+  for (let i = 0; i < n; i++) s += pool[Math.floor(Math.random() * pool.length)];
+  return s;
+}
+const junk = (n: number) => randChars(JUNK_CHARS, n);
+const hex = (n: number) => randChars("0123456789ABCDEF", n);
+function makeCluster(): string {
+  const [open, close] = BRACKETS[Math.floor(Math.random() * BRACKETS.length)];
+  return open + junk(2 + Math.floor(Math.random() * 3)) + close;
+}
+
+// Build the symbol set + the junk lines they hide in.
+function buildMemory(symCount: number, lines: number): { syms: Sym[]; memLines: MemLine[] } {
+  const effects: SymEffect[] = [];
+  for (let i = 0; i < symCount; i++) effects.push(Math.random() < 0.28 ? "reset" : "dud");
+  if (!effects.includes("reset")) effects[Math.floor(Math.random() * symCount)] = "reset";
+  const syms: Sym[] = effects.map((effect, id) => ({ id, effect, cluster: makeCluster(), used: false }));
+
+  const slots: number[][] = Array.from({ length: lines }, () => []);
+  syms.forEach(s => slots[Math.floor(Math.random() * lines)].push(s.id));
+
+  const memLines: MemLine[] = slots.map(ids => {
+    const parts: MemPart[] = [{ kind: "junk", text: junk(3 + Math.floor(Math.random() * 3)) }];
+    ids.forEach(id => {
+      parts.push({ kind: "sym", id });
+      parts.push({ kind: "junk", text: junk(3 + Math.floor(Math.random() * 4)) });
+    });
+    if (ids.length === 0) parts.push({ kind: "junk", text: junk(5 + Math.floor(Math.random() * 6)) });
+    return { addr: "0x" + hex(4), parts };
+  });
+  return { syms, memLines };
+}
+
 const WORD_LIST_4 = ["ATOM","BOMB","BYTE","CODE","CORE","DATA","DEAD","DOOM","DRUG","FILE","FIRE","FUSE","GENE","GHUL","GLOW","GUNS","HACK","HALF","HARD","HELM","HOPE","HUNT","IRON","ITEM","KILL","LIFE","LOCK","LOOT","MOLE","NUKE","OPEN","ORDO","OVER","PACK","PIPE","PLAN","PLEX","PLOT","POLL","PRAY","PURR","QUIT","RACE","RAID","RADS","RIFT","RISK","RUIN","RUST","SAFE","SALT","SCAN","SCAV","SCAR","SEEK","SELF","SEND","SHOT","SIGN","SITE","SKIN","SLAG","SLIM","SLUM","SLOT","SLOW","SLUM","SMOG","SOFT","SOIL","SOUL","SOUP","SPAN","SPIN","SPIT","SPOT","STEP","STOP","STUB","SYNC","TANK","TASK","TEST","TEXT","TICK","TILE","TIME","TINT","TOOL","TRAP","TREK","TRIP","TRUE","TUNE","TURN","TYPE","UNIT","VATS","VAST","VAULT","VENT","VIEW","VOID","VOLT","VOTE","WALK","WALL","WARN","WARP","WAIT","WORM","ZONE","ZERO"];
 const WORD_LIST_5 = ["AGENT","ALERT","ALPHA","AMMO","ARMOR","BLAST","BLAZE","BLOOD","BOUND","BREED","CACHE","CASTE","CHAOS","CHEST","CHILD","CLAIM","CLEAN","CLONE","CLOUD","COAST","COUNT","CRASH","CRAWL","CREED","CROSS","CRUEL","CYBER","DECAY","DELTA","DEPOT","DIRTY","DODGE","DOORS","DRAFT","DRAIN","DRIVE","DRONE","DROWN","DRUGS","ELITE","EMBER","ENEMY","EQUIP","EVADE","EVENT","EXILE","EXTRA","FERAL","FETCH","FIELD","FIGHT","FIRST","FLAME","FLASH","FLESH","FLOOR","FORCE","FORGE","FOUND","FRAME","FREED","FRONT","GHOST","GIANT","GLOOM","GOONS","GRANT","GRAVE","GREAT","GREEN","GRID","GRIME","GRIND","GROUP","GROWL","GUARD","HAVEN","HEAVY","HEIST","HOARD","HONOR","HOUSE","HUMAN","IRRAD","KARMA","KNEEL","KNIFE","LIGHT","LOGIC","MAJOR","MARSH","MERGE","MERIT","MINOR","NEXUS","NIGHT","NOISE","ORDER","OUTDO","OUTER","PANEL","PERKS","PHASE","PILOT","PIPES","POINT","POWER","PROBE","PURGE","QUEST","QUICK","QUIET","RADAR","RADIO","REALM","RECON","RELAY","REPEL","RESET","RISEN","RIVAL","ROBOT","ROVER","RUINS","RULES","SCRAP","SIEGE","SKILL","SLASH","SLEEP","SLIME","SOLAR","SPAWN","SQUAD","STARK","STEAL","STEEL","STORM","STRAY","STRIP","SURGE","SWAMP","SWORD","SYNTH","TOXIN","TRACE","TRACK","TRADE","TRAIL","TRAIN","TRAIT","TRIBE","TRICK","TROOP","TRUST","TUNER","ULTRA","UNION","UNITY","UNLIT","UNWED","VAULT","VISOR","VOUCH","WASTE","WATCH","WATER","WAVES","WEIRD","WOUND","WRATH","ZONES"];
 
@@ -95,6 +138,9 @@ export default function TerminalHacker() {
   const [guesses, setGuesses] = useState<GuessEntry[]>([]);
   const [attemptsLeft, setAttemptsLeft] = useState(4);
   const [hoveredWord, setHoveredWord] = useState<string | null>(null);
+  const [syms, setSyms] = useState<Sym[]>([]);
+  const [memLines, setMemLines] = useState<MemLine[]>([]);
+  const [dudWords, setDudWords] = useState<string[]>([]);
   const [secretFile, setSecretFile] = useState<typeof SECRET_FILES[0] | null>(null);
   const [displayedLines, setDisplayedLines] = useState<string[]>([]);
   const [typing, setTyping] = useState(false);
@@ -128,6 +174,10 @@ export default function TerminalHacker() {
     setSecretFile(null);
     setNewRecord(false);
     setDisplayedLines([]);
+    const mem = buildMemory(diff === 4 ? 6 : 7, 8);
+    setSyms(mem.syms);
+    setMemLines(mem.memLines);
+    setDudWords([]);
     setTerminalLog([
       "> ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM",
       "> CRACKING VAULT-TEC ENCRYPTED DATABASE...",
@@ -188,6 +238,28 @@ export default function TerminalHacker() {
     }
   }, [gameState, answer, guesses, attemptsLeft, streak]);
 
+  const handleSym = useCallback((id: number) => {
+    if (gameState !== "playing") return;
+    const s = syms.find(x => x.id === id);
+    if (!s || s.used) return;
+    setSyms(prev => prev.map(x => (x.id === id ? { ...x, used: true } : x)));
+    if (s.effect === "reset") {
+      setAttemptsLeft(4);
+      addLog("!SECURITY BYPASS! ATTEMPTS REPLENISHED.");
+    } else {
+      const candidates = wordPool.filter(
+        w => w !== answer && !dudWords.includes(w) && !guesses.some(g => g.word === w)
+      );
+      if (candidates.length === 0) {
+        addLog("NO DUDS LEFT TO PURGE.");
+      } else {
+        const victim = candidates[Math.floor(Math.random() * candidates.length)];
+        setDudWords(dw => [...dw, victim]);
+        addLog(`DUD REMOVED: ${victim}`);
+      }
+    }
+  }, [gameState, syms, wordPool, answer, dudWords, guesses]);
+
   const attemptsBar = "████".slice(0, attemptsLeft) + "░".repeat(Math.max(0, 4 - attemptsLeft));
 
   return (
@@ -215,6 +287,7 @@ export default function TerminalHacker() {
       )}
 
       {(gameState === "playing" || gameState === "won" || gameState === "lost") && (
+        <div className="w-full flex flex-col gap-4">
         <div className="flex gap-4 w-full" style={{ flexWrap: "wrap" }}>
           {/* Word grid */}
           <div className="flex-1 min-w-[200px]">
@@ -223,6 +296,15 @@ export default function TerminalHacker() {
               {wordPool.map((word) => {
                 const guessed = guesses.find(g => g.word === word);
                 const isCorrect = word === answer && gameState === "won";
+                const isDud = dudWords.includes(word);
+                if (isDud) {
+                  return (
+                    <div key={word} className="text-left px-2 py-1 font-mono text-sm"
+                      style={{ color: "#3a3a3a", border: "1px solid #1e1e1e", textDecoration: "line-through", cursor: "default" }}>
+                      {".".repeat(word.length)}<span className="ml-2 text-green-900 text-xs">DUD</span>
+                    </div>
+                  );
+                }
                 return (
                   <button
                     key={word}
@@ -330,6 +412,37 @@ export default function TerminalHacker() {
               </div>
             )}
           </div>
+        </div>
+
+        {gameState === "playing" && memLines.length > 0 && (
+          <div className="pipboy-border p-3 w-full">
+            <div className="text-xs text-green-500/70 mb-2">{t("term.symbols")}</div>
+            <div className="font-mono text-xs" style={{ lineHeight: "1.9", wordBreak: "break-all" }}>
+              {memLines.map((ln, i) => (
+                <div key={i}>
+                  <span className="text-green-800 mr-2 select-none">{ln.addr}</span>
+                  {ln.parts.map((p, j) => {
+                    if (p.kind === "junk") return <span key={j} className="text-green-700 select-none">{p.text}</span>;
+                    const s = syms.find(x => x.id === p.id)!;
+                    return (
+                      <button key={j} disabled={s.used} onClick={() => handleSym(p.id)}
+                        className="mx-1 font-mono"
+                        style={{
+                          color: s.used ? "#333" : "#00FF88",
+                          textShadow: s.used ? "none" : GLOW,
+                          textDecoration: s.used ? "line-through" : "none",
+                          cursor: s.used ? "default" : "pointer",
+                        }}>
+                        {s.cluster}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-green-600/70 mt-2">{t("term.symhint")}</div>
+          </div>
+        )}
         </div>
       )}
     </div>

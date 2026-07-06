@@ -174,6 +174,8 @@ const TRANSLATIONS: Record<string, Record<Language, string>> = {
   "term.tryagain":       { en: "[ TRY AGAIN ]", es: "[ REINTENTAR ]" },
   "term.menu":           { en: "[ MENU ]", es: "[ MENÚ ]" },
   "term.streak":         { en: "STREAK", es: "RACHA" },
+  "term.symbols":        { en: "MEMORY DUMP — PROBE SYMBOLS:", es: "VOLCADO DE MEMORIA — SONDEA SÍMBOLOS:" },
+  "term.symhint":        { en: "Click bracket symbols () [] {} <> to remove a dud word or replenish attempts.", es: "Pulsa los símbolos () [] {} <> para eliminar un señuelo o reponer intentos." },
   "launch":              { en: "LAUNCH", es: "INICIAR" },
   "boot.init":           { en: "INITIALIZING FERDREX SYSTEM...", es: "INICIALIZANDO SISTEMA FERDREX..." },
   "boot.memory":         { en: "MEMORY OK: 64KB", es: "MEMORIA OK: 64KB" },
