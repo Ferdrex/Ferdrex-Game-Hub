@@ -2,8 +2,6 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { getHighScore, submitHighScore } from "../lib/highscore";
 
-const GLOW = "0 0 10px #00FF00";
-
 // ---- Fallout-style memory dump with clickable symbol brackets ----
 const JUNK_CHARS = "!@#$%^&*-+=?~/\\|_:;.,°¬";
 const BRACKETS: [string, string][] = [["<", ">"], ["[", "]"], ["{", "}"], ["(", ")"]];
@@ -127,7 +125,12 @@ type GameState = "menu" | "playing" | "won" | "lost";
 type GuessEntry = { word: string; matches: number };
 
 export default function TerminalHacker() {
-  const { t } = useApp();
+  const { t, settings } = useApp();
+  const tc = settings.theme === "amber" ? "#FFC000"
+    : settings.theme === "blue" ? "#00CCFF"
+    : settings.theme === "red" ? "#FF4444"
+    : "#00FF00";
+  const glow = `0 0 10px ${tc}`;
   const [gameState, setGameState] = useState<GameState>("menu");
   const [difficulty, setDifficulty] = useState<4|5>(4);
   const [streak, setStreak] = useState(0);
@@ -265,20 +268,20 @@ export default function TerminalHacker() {
   return (
     <div className="flex flex-col items-center gap-4 p-4 w-full max-w-3xl mx-auto">
       <div className="text-center">
-        <div className="text-xs uppercase tracking-widest text-green-500/70 mb-1">Terminal Hacker v3.0</div>
-        <div className="glow text-green-400 text-sm">ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM</div>
-        <div className="text-xs text-green-500/70 mt-1">
+        <div className="text-xs uppercase tracking-widest mb-1" style={{ color: `${tc}b0` }}>Terminal Hacker v3.0</div>
+        <div className="glow text-sm" style={{ color: tc }}>ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM</div>
+        <div className="text-xs mt-1" style={{ color: `${tc}b0` }}>
           {t("term.streak")}: {streak} · {t("record.best")}: {bestStreak}
         </div>
       </div>
 
       {gameState === "menu" && (
         <div className="pipboy-border p-6 w-full text-center">
-          <div className="text-green-400 text-lg mb-2 flicker">{t("term.title")}</div>
-          <div className="text-green-300 text-sm mb-6">
+          <div className="text-lg mb-2 flicker" style={{ color: tc }}>{t("term.title")}</div>
+          <div className="text-sm mb-6" style={{ color: tc }}>
             {t("term.intro")}
           </div>
-          <div className="text-green-500/70 text-xs mb-4">{t("term.difficulty")}</div>
+          <div className="text-xs mb-4" style={{ color: `${tc}b0` }}>{t("term.difficulty")}</div>
           <div className="flex gap-4 justify-center flex-wrap">
             <button className="pipboy-btn" onClick={() => startGame(4)}>{t("term.4letter")}</button>
             <button className="pipboy-btn" onClick={() => startGame(5)}>{t("term.5letter")}</button>
@@ -291,7 +294,7 @@ export default function TerminalHacker() {
         <div className="flex gap-4 w-full" style={{ flexWrap: "wrap" }}>
           {/* Word grid */}
           <div className="flex-1 min-w-[200px]">
-            <div className="text-xs text-green-500/70 mb-2">{t("term.candidates")}</div>
+            <div className="text-xs mb-2" style={{ color: `${tc}b0` }}>{t("term.candidates")}</div>
             <div className="pipboy-border p-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
               {wordPool.map((word) => {
                 const guessed = guesses.find(g => g.word === word);
@@ -311,27 +314,27 @@ export default function TerminalHacker() {
                     className="text-left px-2 py-1 font-mono text-sm transition-all"
                     style={{
                       background: isCorrect
-                        ? "rgba(0,255,0,0.2)"
+                        ? `${tc}33`
                         : guessed
                         ? "rgba(255,100,0,0.1)"
                         : hoveredWord === word && gameState === "playing"
-                        ? "rgba(0,255,0,0.1)"
+                        ? `${tc}1a`
                         : "transparent",
                       color: isCorrect
-                        ? "#00FF00"
+                        ? tc
                         : guessed
                         ? "#666"
-                        : "#00DD00",
+                        : `${tc}dd`,
                       border: "1px solid",
                       borderColor: isCorrect
-                        ? "#00FF00"
+                        ? tc
                         : guessed
                         ? "#333"
                         : hoveredWord === word && gameState === "playing"
-                        ? "rgba(0,255,0,0.5)"
+                        ? `${tc}88`
                         : "transparent",
                       cursor: guessed || gameState !== "playing" ? "default" : "pointer",
-                      textShadow: isCorrect ? GLOW : "none",
+                      textShadow: isCorrect ? glow : "none",
                       textDecoration: guessed && !isCorrect ? "line-through" : "none",
                       opacity: guessed && !isCorrect ? 0.4 : 1,
                     }}
@@ -350,21 +353,21 @@ export default function TerminalHacker() {
             </div>
 
             {gameState === "playing" && (
-              <div className="mt-3 text-xs text-green-500">
+              <div className="mt-3 text-xs" style={{ color: `${tc}cc` }}>
                 <span>{t("term.attempts")} </span>
                 <span className="font-mono" style={{ letterSpacing: "0.15em" }}>{attemptsBar}</span>
-                <span className="ml-2 text-green-400">{attemptsLeft}/4</span>
+                <span className="ml-2" style={{ color: tc }}>{attemptsLeft}/4</span>
               </div>
             )}
           </div>
 
           {/* Terminal log */}
           <div className="flex-1 min-w-[240px]">
-            <div className="text-xs text-green-500/70 mb-2">{t("term.output")}</div>
+            <div className="text-xs mb-2" style={{ color: `${tc}b0` }}>{t("term.output")}</div>
             <div
               ref={logRef}
-              className="pipboy-border p-3 font-mono text-xs text-green-400 overflow-y-auto"
-              style={{ height: "280px", lineHeight: "1.6" }}
+              className="pipboy-border p-3 font-mono text-xs overflow-y-auto"
+              style={{ height: "280px", lineHeight: "1.6", color: tc }}
             >
               {terminalLog.map((line, i) => (
                 <div key={i}>{line}</div>
@@ -376,10 +379,10 @@ export default function TerminalHacker() {
                 </div>
               )}
               {gameState === "won" && secretFile && (
-                <div className="mt-2 border-t border-green-800 pt-2">
-                  <div className="text-green-300 mb-1">--- {secretFile.filename} ---</div>
+                <div className="mt-2 border-t pt-2" style={{ borderColor: `${tc}44` }}>
+                  <div className="mb-1" style={{ color: tc }}>--- {secretFile.filename} ---</div>
                   {displayedLines.map((line, i) => (
-                    <div key={i} style={{ color: line.startsWith(">>>") ? "#00FF00" : "#99cc99" }}>{line}</div>
+                    <div key={i} style={{ color: line.startsWith(">>>") ? tc : `${tc}aa` }}>{line}</div>
                   ))}
                   {typing && <span className="cursor-blink">█</span>}
                 </div>
@@ -388,12 +391,12 @@ export default function TerminalHacker() {
 
             {/* Guess history */}
             {guesses.length > 0 && (
-              <div className="mt-2 text-xs text-green-600">
+              <div className="mt-2 text-xs" style={{ color: `${tc}99` }}>
                 {guesses.map((g, i) => (
                   <div key={i}>
-                    <span className="text-green-500">{g.word}</span>
+                    <span style={{ color: `${tc}cc` }}>{g.word}</span>
                     <span className="mx-2">→</span>
-                    <span className={g.matches === answer.length ? "text-green-300" : "text-orange-400"}>
+                    <span style={{ color: g.matches === answer.length ? tc : "#FF9933" }}>
                       {g.matches}/{answer.length} match{g.matches !== 1 ? "es" : ""}
                     </span>
                   </div>
@@ -402,7 +405,7 @@ export default function TerminalHacker() {
             )}
 
             {gameState === "won" && newRecord && (
-              <div className="mt-3 glow text-green-300 text-sm flicker">★ {t("record.new")} ★</div>
+              <div className="mt-3 glow text-sm flicker" style={{ color: tc }}>★ {t("record.new")} ★</div>
             )}
 
             {(gameState === "won" || gameState === "lost") && (
@@ -416,20 +419,20 @@ export default function TerminalHacker() {
 
         {gameState === "playing" && memLines.length > 0 && (
           <div className="pipboy-border p-3 w-full">
-            <div className="text-xs text-green-500/70 mb-2">{t("term.symbols")}</div>
+            <div className="text-xs mb-2" style={{ color: `${tc}b0` }}>{t("term.symbols")}</div>
             <div className="font-mono text-xs" style={{ lineHeight: "1.9", wordBreak: "break-all" }}>
               {memLines.map((ln, i) => (
                 <div key={i}>
-                  <span className="text-green-800 mr-2 select-none">{ln.addr}</span>
+                  <span className="mr-2 select-none" style={{ color: `${tc}55` }}>{ln.addr}</span>
                   {ln.parts.map((p, j) => {
-                    if (p.kind === "junk") return <span key={j} className="text-green-700 select-none">{p.text}</span>;
+                    if (p.kind === "junk") return <span key={j} className="select-none" style={{ color: `${tc}44` }}>{p.text}</span>;
                     const s = syms.find(x => x.id === p.id)!;
                     return (
                       <button key={j} disabled={s.used} onClick={() => handleSym(p.id)}
                         className="mx-1 font-mono"
                         style={{
-                          color: s.used ? "#333" : "#00FF88",
-                          textShadow: s.used ? "none" : GLOW,
+                          color: s.used ? "#333" : tc,
+                          textShadow: s.used ? "none" : glow,
                           textDecoration: s.used ? "line-through" : "none",
                           cursor: s.used ? "default" : "pointer",
                         }}>
@@ -440,7 +443,7 @@ export default function TerminalHacker() {
                 </div>
               ))}
             </div>
-            <div className="text-xs text-green-600/70 mt-2">{t("term.symhint")}</div>
+            <div className="text-xs mt-2" style={{ color: `${tc}88` }}>{t("term.symhint")}</div>
           </div>
         )}
         </div>

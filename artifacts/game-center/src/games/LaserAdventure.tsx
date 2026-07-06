@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useApp } from "../context/AppContext";
 
 const player_speed = 5;
 const enemy_spawn_rate = 1.2;
@@ -125,6 +126,13 @@ function drawParticle(ctx: CanvasRenderingContext2D, p: Particle) {
 }
 
 export default function LaserAdventure() {
+  const { settings } = useApp();
+  const tc = settings.theme === "amber" ? "#FFC000"
+    : settings.theme === "blue" ? "#00CCFF"
+    : settings.theme === "red" ? "#FF4444"
+    : "#00FF00";
+  const tcRef = useRef(tc);
+  tcRef.current = tc;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameStateRef = useRef({
     player: { x: 100, y: 200, w: 32, h: 38 } as Entity,
@@ -333,8 +341,8 @@ export default function LaserAdventure() {
     // HUD
     ctx.fillStyle = "rgba(0,0,0,0.4)";
     ctx.fillRect(0, 0, CANVAS_W, 30);
-    ctx.fillStyle = "#00FF00";
-    ctx.shadowColor = "#00FF00";
+    ctx.fillStyle = tcRef.current;
+    ctx.shadowColor = tcRef.current;
     ctx.shadowBlur = 6;
     ctx.font = "12px 'Share Tech Mono', monospace";
     ctx.fillText(`SCORE: ${gs.score}`, 10, 20);
@@ -417,8 +425,8 @@ export default function LaserAdventure() {
   return (
     <div className="flex flex-col items-center gap-4 p-4">
       <div className="text-center">
-        <div className="text-xs uppercase tracking-widest text-green-500/70 mb-1">Laser Adventure v2.1</div>
-        <div className="glow text-green-400 text-sm">
+        <div className="text-xs uppercase tracking-widest mb-1" style={{ color: `${tc}b0` }}>Laser Adventure v2.1</div>
+        <div className="glow text-sm" style={{ color: tc }}>
           Score: {score} | Lives: {"♦".repeat(Math.max(0,lives))}{"◇".repeat(Math.max(0,3-lives))}
         </div>
       </div>
@@ -437,9 +445,9 @@ export default function LaserAdventure() {
         />
         {!gameStarted && !gameOver && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
-            <div className="glow text-green-400 text-2xl mb-2 font-mono">LASER ADVENTURE</div>
-            <div className="text-green-300 text-sm mb-1">Retro-Tech Scavenger vs. Cyber-Drones</div>
-            <div className="text-green-500/70 text-xs mb-4">
+            <div className="glow text-2xl mb-2 font-mono" style={{ color: tc }}>LASER ADVENTURE</div>
+            <div className="text-sm mb-1" style={{ color: tc }}>Retro-Tech Scavenger vs. Cyber-Drones</div>
+            <div className="text-xs mb-4" style={{ color: `${tc}b0` }}>
               WASD/Arrows: Move • SPACE/F: Shoot<br/>
               Slow-Mo activates when you're near death!
             </div>
@@ -449,7 +457,7 @@ export default function LaserAdventure() {
         {gameOver && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
             <div className="glow-red text-red-400 text-2xl mb-2 font-mono">GAME OVER</div>
-            <div className="text-green-400 text-sm mb-4">Final Score: {score}</div>
+            <div className="text-sm mb-4" style={{ color: tc }}>Final Score: {score}</div>
             <button className="pipboy-btn" onClick={startGame}>[ RETRY ]</button>
           </div>
         )}
@@ -474,7 +482,7 @@ export default function LaserAdventure() {
         >FIRE</button>
       </div>
 
-      <div className="text-xs text-green-600 text-center">
+      <div className="text-xs text-center" style={{ color: `${tc}99` }}>
         WASD / Arrows to move • SPACE/F or FIRE to shoot • drag on screen also works
       </div>
     </div>

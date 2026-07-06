@@ -191,7 +191,13 @@ export default function RadiationRunner() {
     radsAccum: 0,
   });
   const animRef = useRef<number>(0);
-  const { t } = useApp();
+  const { t, settings } = useApp();
+  const tc = settings.theme === "amber" ? "#FFC000"
+    : settings.theme === "blue" ? "#00CCFF"
+    : settings.theme === "red" ? "#FF4444"
+    : "#00FF00";
+  const tcRef = useRef(tc);
+  tcRef.current = tc;
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [started, setStarted] = useState(false);
@@ -390,8 +396,8 @@ export default function RadiationRunner() {
     // HUD
     ctx.fillStyle = "rgba(0,0,0,0.35)";
     ctx.fillRect(0, 0, CANVAS_W, 28);
-    ctx.fillStyle = "#00FF00";
-    ctx.shadowColor = "#00FF00";
+    ctx.fillStyle = tcRef.current;
+    ctx.shadowColor = tcRef.current;
     ctx.shadowBlur = 6;
     ctx.font = "12px 'Share Tech Mono', monospace";
     ctx.fillText(`RADS SURVIVED: ${gs.score}`, 10, 18);
@@ -442,9 +448,9 @@ export default function RadiationRunner() {
   return (
     <div className="flex flex-col items-center gap-4 p-4">
       <div className="text-center">
-        <div className="text-xs uppercase tracking-widest text-green-500/70 mb-1">Radiation Runner v1.0</div>
-        <div className="glow text-green-400 text-sm">RADS SURVIVED: {score}</div>
-        <div className="text-xs text-green-500/70 mt-1">{t("record.best")}: {best}</div>
+        <div className="text-xs uppercase tracking-widest mb-1" style={{ color: `${tc}b0` }}>Radiation Runner v1.0</div>
+        <div className="glow text-sm" style={{ color: tc }}>RADS SURVIVED: {score}</div>
+        <div className="text-xs mt-1" style={{ color: `${tc}b0` }}>{t("record.best")}: {best}</div>
       </div>
 
       <div className="relative pipboy-border">
@@ -458,8 +464,8 @@ export default function RadiationRunner() {
         />
         {!started && !gameOver && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
-            <div className="glow text-green-400 text-2xl mb-2 font-mono">RADIATION RUNNER</div>
-            <div className="text-green-300 text-sm mb-4 text-center px-8">
+            <div className="glow text-2xl mb-2 font-mono" style={{ color: tc }}>RADIATION RUNNER</div>
+            <div className="text-sm mb-4 text-center px-8" style={{ color: tc }}>
               JUMP over barrels & spikes, DUCK under flying drones!<br/>
               Double-jump available. Speed ramps up fast.
             </div>
@@ -469,10 +475,10 @@ export default function RadiationRunner() {
         {gameOver && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
             <div className="glow-red text-red-400 text-2xl mb-2 font-mono">IRRADIATED!</div>
-            <div className="text-green-400 text-sm mb-1">Rads Survived: {score}</div>
+            <div className="text-sm mb-1" style={{ color: tc }}>Rads Survived: {score}</div>
             {newRecord
-              ? <div className="glow text-green-300 text-sm mb-4 flicker">★ {t("record.new")} ★</div>
-              : <div className="text-green-500/70 text-xs mb-4">{t("record.best")}: {best}</div>}
+              ? <div className="glow text-sm mb-4 flicker" style={{ color: tc }}>★ {t("record.new")} ★</div>
+              : <div className="text-xs mb-4" style={{ color: `${tc}b0` }}>{t("record.best")}: {best}</div>}
             <div className="flex gap-2 flex-wrap justify-center">
               <button className="pipboy-btn" onClick={startGame}>[ TRY AGAIN ]</button>
               <button className="pipboy-btn" onClick={() => setShowLb(true)}>🏆 {t("lb.view")}</button>
@@ -497,7 +503,7 @@ export default function RadiationRunner() {
         >▼</button>
       </div>
 
-      <div className="text-xs text-green-600 text-center">
+      <div className="text-xs text-center" style={{ color: `${tc}99` }}>
         ▲ jump (double-jump!) • ▼ duck under drones • ↑↓ / SPACE also work
       </div>
 
