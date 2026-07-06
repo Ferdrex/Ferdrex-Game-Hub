@@ -8,9 +8,9 @@ const CANVAS_H = 300;
 const GROUND_Y = 250;
 const GRAVITY = 0.6;
 const JUMP_FORCE = -13;
-const SCROLL_SPEED_BASE = 4;
+const SCROLL_SPEED_BASE = 4.6;
 
-type Obstacle = { x: number; y: number; w: number; h: number; type: "barrel"|"spike"|"crate" };
+type Obstacle = { x: number; y: number; w: number; h: number; type: "barrel"|"spike"|"crate"|"drone" };
 type Cloud = { x: number; y: number; speed: number };
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; maxLife: number };
 
@@ -143,12 +143,40 @@ function drawCrate(ctx: CanvasRenderingContext2D, x: number, y: number) {
   ctx.textAlign = "left";
 }
 
+function drawDrone(ctx: CanvasRenderingContext2D, x: number, y: number, tick: number) {
+  const px = Math.floor(x);
+  const py = Math.floor(y) + Math.sin(tick * 0.2) * 2;
+  // Body
+  ctx.fillStyle = "#1a1a2e";
+  ctx.fillRect(px + 3, py + 4, 28, 12);
+  // Wings
+  ctx.fillStyle = "#0d0d1a";
+  ctx.fillRect(px, py + 6, 6, 6);
+  ctx.fillRect(px + 28, py + 6, 6, 6);
+  // Red eye
+  ctx.fillStyle = "#ff0000";
+  ctx.shadowColor = "#ff0000";
+  ctx.shadowBlur = 8;
+  ctx.fillRect(px + 8, py + 7, 5, 4);
+  ctx.fillRect(px + 20, py + 7, 5, 4);
+  ctx.shadowBlur = 0;
+  // Thrusters
+  ctx.fillStyle = "#ff6600";
+  ctx.shadowColor = "#ff6600";
+  ctx.shadowBlur = 6;
+  ctx.fillRect(px + 8, py + 16, 3, 2 + Math.floor(Math.sin(tick * 0.4) * 2));
+  ctx.fillRect(px + 22, py + 16, 3, 2 + Math.floor(Math.cos(tick * 0.4) * 2));
+  ctx.shadowBlur = 0;
+}
+
 export default function RadiationRunner() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gsRef = useRef({
     playerY: GROUND_Y - 36,
     playerVY: 0,
     isJumping: false,
+    ducking: false,
+    jumpsUsed: 0,
     obstacles: [] as Obstacle[],
     clouds: [] as Cloud[],
     particles: [] as Particle[],
@@ -171,29 +199,44 @@ export default function RadiationRunner() {
   const [newRecord, setNewRecord] = useState(false);
   const [showLb, setShowLb] = useState(false);
 
+  // Jump with double-jump support (edge-triggered)
+  const doJump = useCallback(() => {
+    const gs = gsRef.current;
+    if (!gs.running || gs.gameOver) return;
+    if (gs.jumpsUsed < 2) {
+      gs.playerVY = JUMP_FORCE;
+      gs.isJumping = true;
+      gs.jumpsUsed++;
+    }
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      gsRef.current.keys[e.code] = e.type === "keydown";
-      if ((e.code === "Space" || e.code === "ArrowUp") && e.type === "keydown") {
-        const gs = gsRef.current;
-        if (!gs.isJumping && gs.running && !gs.gameOver) {
-          gs.playerVY = JUMP_FORCE;
-          gs.isJumping = true;
-        }
-      }
+      const down = e.type === "keydown";
+      gsRef.current.keys[e.code] = down;
+      if ((e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") && down) doJump();
+      if (e.code === "ArrowDown" || e.code === "KeyS") gsRef.current.ducking = down;
     };
     window.addEventListener("keydown", onKey);
     window.addEventListener("keyup", onKey);
     return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("keyup", onKey); };
-  }, []);
+  }, [doJump]);
 
   const spawnObstacle = () => {
     const gs = gsRef.current;
-    const types: Obstacle["type"][] = ["barrel", "barrel", "spike", "crate"];
+    // Flying drones (must DUCK under them) start appearing once warmed up
+    const allowDrone = gs.score > 250;
+    const types: Obstacle["type"][] = allowDrone
+      ? ["barrel", "spike", "crate", "drone", "drone"]
+      : ["barrel", "barrel", "spike", "crate"];
     const type = types[Math.floor(Math.random() * types.length)];
-    const w = type === "spike" ? 36 : 32;
-    const h = type === "spike" ? 36 : 32;
-    gs.obstacles.push({ x: CANVAS_W + 20, y: GROUND_Y - h, w, h, type });
+    if (type === "drone") {
+      gs.obstacles.push({ x: CANVAS_W + 20, y: GROUND_Y - 46, w: 34, h: 20, type });
+    } else {
+      const w = type === "spike" ? 36 : 32;
+      const h = type === "spike" ? 36 : 32;
+      gs.obstacles.push({ x: CANVAS_W + 20, y: GROUND_Y - h, w, h, type });
+    }
   };
 
   const gameLoop = useCallback(() => {
@@ -204,23 +247,18 @@ export default function RadiationRunner() {
     gs.tick++;
 
     if (!gs.gameOver) {
-      // Physics
-      gs.playerVY += GRAVITY;
+      // Physics — hold DOWN mid-air for a fast fall (more dynamic)
+      gs.playerVY += GRAVITY + (gs.ducking && gs.isJumping ? 0.9 : 0);
       gs.playerY += gs.playerVY;
       if (gs.playerY >= GROUND_Y - 36) {
         gs.playerY = GROUND_Y - 36;
         gs.playerVY = 0;
         gs.isJumping = false;
+        gs.jumpsUsed = 0;
       }
 
-      // Touch jump
-      if ((gs.keys["Space"] || gs.keys["ArrowUp"]) && !gs.isJumping) {
-        gs.playerVY = JUMP_FORCE;
-        gs.isJumping = true;
-      }
-
-      // Scroll speed increases over time
-      gs.scrollSpeed = SCROLL_SPEED_BASE + gs.score * 0.01;
+      // Scroll speed increases over time (ramps a bit faster now)
+      gs.scrollSpeed = SCROLL_SPEED_BASE + gs.score * 0.012;
       gs.bgX = (gs.bgX - gs.scrollSpeed * 0.5 + CANVAS_W * 2) % (CANVAS_W * 2);
 
       // Spawn obstacles
@@ -246,8 +284,11 @@ export default function RadiationRunner() {
       gs.score++;
       if (gs.tick % 6 === 0) setScore(gs.score);
 
-      // Collision
-      const px = 40, py = gs.playerY, pw = 22, ph = 32;
+      // Collision — crouching shrinks the hitbox so drones pass overhead
+      const isDucking = gs.ducking && !gs.isJumping;
+      const px = 40, pw = 22;
+      const ph = isDucking ? 16 : 32;
+      const py = isDucking ? GROUND_Y - 16 : gs.playerY;
       for (const o of gs.obstacles) {
         if (px + 2 < o.x + o.w - 2 && px + pw - 2 > o.x + 2 && py + 2 < o.y + o.h - 2 && py + ph - 2 > o.y + 2) {
           // Explosion particles
@@ -327,11 +368,24 @@ export default function RadiationRunner() {
     gs.obstacles.forEach(o => {
       if (o.type === "barrel") drawBarrel(ctx, o.x, o.y, gs.tick);
       else if (o.type === "spike") drawSpike(ctx, o.x, o.y);
+      else if (o.type === "drone") drawDrone(ctx, o.x, o.y, gs.tick);
       else drawCrate(ctx, o.x, o.y);
     });
 
-    // Player
-    if (!gs.gameOver || gs.particles.length > 0) drawPlayer(ctx, 40, gs.playerY, gs.isJumping, gs.tick);
+    // Player (squashed vertically when ducking)
+    if (!gs.gameOver || gs.particles.length > 0) {
+      const duckNow = gs.ducking && !gs.isJumping;
+      if (duckNow) {
+        ctx.save();
+        ctx.translate(0, GROUND_Y);
+        ctx.scale(1, 0.55);
+        ctx.translate(0, -GROUND_Y);
+        drawPlayer(ctx, 40, GROUND_Y - 36, false, gs.tick);
+        ctx.restore();
+      } else {
+        drawPlayer(ctx, 40, gs.playerY, gs.isJumping, gs.tick);
+      }
+    }
 
     // HUD
     ctx.fillStyle = "rgba(0,0,0,0.35)";
@@ -341,8 +395,8 @@ export default function RadiationRunner() {
     ctx.shadowBlur = 6;
     ctx.font = "12px 'Share Tech Mono', monospace";
     ctx.fillText(`RADS SURVIVED: ${gs.score}`, 10, 18);
-    ctx.fillText(`SPEED: ${gs.scrollSpeed.toFixed(1)}x`, 260, 18);
-    ctx.fillText("JUMP: SPACE / ↑", 390, 18);
+    ctx.fillText(`SPEED: ${gs.scrollSpeed.toFixed(1)}x`, 250, 18);
+    ctx.fillText("↑ JUMP  ↓ DUCK", 400, 18);
     ctx.shadowBlur = 0;
 
     if (!gs.gameOver) animRef.current = requestAnimationFrame(gameLoop);
@@ -353,6 +407,8 @@ export default function RadiationRunner() {
     gs.playerY = GROUND_Y - 36;
     gs.playerVY = 0;
     gs.isJumping = false;
+    gs.ducking = false;
+    gs.jumpsUsed = 0;
     gs.obstacles = [];
     gs.clouds = [];
     gs.particles = [];
@@ -377,12 +433,11 @@ export default function RadiationRunner() {
   // Touch / mouse: tap the canvas to jump (mobile support)
   const handleJumpTap = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
-    const gs = gsRef.current;
-    if (!gs.isJumping && gs.running && !gs.gameOver) {
-      gs.playerVY = JUMP_FORCE;
-      gs.isJumping = true;
-    }
-  }, []);
+    doJump();
+  }, [doJump]);
+
+  // On-screen duck button (hold)
+  const setDuck = useCallback((on: boolean) => { gsRef.current.ducking = on; }, []);
 
   return (
     <div className="flex flex-col items-center gap-4 p-4">
@@ -405,8 +460,8 @@ export default function RadiationRunner() {
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
             <div className="glow text-green-400 text-2xl mb-2 font-mono">RADIATION RUNNER</div>
             <div className="text-green-300 text-sm mb-4 text-center px-8">
-              Jump over radioactive barrels, spikes, and crates!<br/>
-              Speed increases as you survive longer.
+              JUMP over barrels & spikes, DUCK under flying drones!<br/>
+              Double-jump available. Speed ramps up fast.
             </div>
             <button className="pipboy-btn" onClick={startGame}>[ START RUNNING ]</button>
           </div>
@@ -426,8 +481,24 @@ export default function RadiationRunner() {
         )}
       </div>
 
+      {/* On-screen controls */}
+      <div className="w-full max-w-[240px] flex gap-2">
+        <button
+          className="pipboy-btn text-2xl py-4 flex-1"
+          onPointerDown={(e) => { e.preventDefault(); doJump(); }}
+          style={{ touchAction: "none" }}
+        >▲</button>
+        <button
+          className="pipboy-btn text-2xl py-4 flex-1"
+          onPointerDown={(e) => { e.preventDefault(); setDuck(true); }}
+          onPointerUp={() => setDuck(false)}
+          onPointerLeave={() => setDuck(false)}
+          style={{ touchAction: "none" }}
+        >▼</button>
+      </div>
+
       <div className="text-xs text-green-600 text-center">
-        SPACE / ↑ / TAP to jump • Avoid all obstacles
+        ▲ jump (double-jump!) • ▼ duck under drones • ↑↓ / SPACE also work
       </div>
 
       {showLb && (

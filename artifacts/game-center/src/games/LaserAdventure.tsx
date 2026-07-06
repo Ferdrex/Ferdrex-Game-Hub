@@ -379,6 +379,9 @@ export default function LaserAdventure() {
   }, [updatePointer]);
   const endPointer = useCallback(() => { gameStateRef.current.pointer.active = false; }, []);
 
+  // On-screen buttons set the same key flags the game loop already reads
+  const setKey = useCallback((code: string, on: boolean) => { gameStateRef.current.keys[code] = on; }, []);
+
   const startGame = () => {
     const gs = gameStateRef.current;
     gs.player = { x: 100, y: 200, w: 32, h: 38 };
@@ -452,9 +455,40 @@ export default function LaserAdventure() {
         )}
       </div>
 
+      {/* On-screen controls: D-pad + fire */}
+      <div className="w-full max-w-[340px] flex items-center justify-between gap-4">
+        <div className="flex flex-col items-center gap-1">
+          <DPadBtn label="▲" onDown={() => setKey("ArrowUp", true)} onUp={() => setKey("ArrowUp", false)} />
+          <div className="flex gap-1">
+            <DPadBtn label="◀" onDown={() => setKey("ArrowLeft", true)} onUp={() => setKey("ArrowLeft", false)} />
+            <DPadBtn label="▼" onDown={() => setKey("ArrowDown", true)} onUp={() => setKey("ArrowDown", false)} />
+            <DPadBtn label="▶" onDown={() => setKey("ArrowRight", true)} onUp={() => setKey("ArrowRight", false)} />
+          </div>
+        </div>
+        <button
+          className="pipboy-btn text-sm w-20 h-20 rounded-full flex items-center justify-center"
+          onPointerDown={(e) => { e.preventDefault(); setKey("Space", true); }}
+          onPointerUp={() => setKey("Space", false)}
+          onPointerLeave={() => setKey("Space", false)}
+          style={{ touchAction: "none" }}
+        >FIRE</button>
+      </div>
+
       <div className="text-xs text-green-600 text-center">
-        WASD / Arrows + SPACE/F to shoot • On mobile: drag to move, auto-fires
+        WASD / Arrows to move • SPACE/F or FIRE to shoot • drag on screen also works
       </div>
     </div>
+  );
+}
+
+function DPadBtn({ label, onDown, onUp }: { label: string; onDown: () => void; onUp: () => void }) {
+  return (
+    <button
+      className="pipboy-btn text-lg w-12 h-11 flex items-center justify-center"
+      onPointerDown={(e) => { e.preventDefault(); onDown(); }}
+      onPointerUp={onUp}
+      onPointerLeave={onUp}
+      style={{ touchAction: "none" }}
+    >{label}</button>
   );
 }

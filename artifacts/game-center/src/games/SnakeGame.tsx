@@ -198,6 +198,20 @@ export default function SnakeGame() {
         )}
       </div>
 
+      {/* On-screen D-pad */}
+      <div className="flex flex-col items-center gap-2">
+        <button className="pipboy-btn text-xl w-14 h-12 flex items-center justify-center"
+          onPointerDown={(e) => { e.preventDefault(); setDir(0, -1); }} style={{ touchAction: "none" }}>▲</button>
+        <div className="flex gap-2">
+          <button className="pipboy-btn text-xl w-14 h-12 flex items-center justify-center"
+            onPointerDown={(e) => { e.preventDefault(); setDir(-1, 0); }} style={{ touchAction: "none" }}>◀</button>
+          <button className="pipboy-btn text-xl w-14 h-12 flex items-center justify-center"
+            onPointerDown={(e) => { e.preventDefault(); setDir(0, 1); }} style={{ touchAction: "none" }}>▼</button>
+          <button className="pipboy-btn text-xl w-14 h-12 flex items-center justify-center"
+            onPointerDown={(e) => { e.preventDefault(); setDir(1, 0); }} style={{ touchAction: "none" }}>▶</button>
+        </div>
+      </div>
+
       <div className="text-xs text-center" style={{ color: `${tc}88` }}>
         {t("snake.controls")}
       </div>
