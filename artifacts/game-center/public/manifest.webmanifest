@@ -1,0 +1,19 @@
+{
+  "name": "Drex Arcade — Ferdrex Game Studios",
+  "short_name": "Drex Arcade",
+  "description": "Retro Pip-Boy style game collection: Chess, Snake, Tetris, 2048, Minesweeper and more.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020a02",
+  "theme_color": "#00FF00",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

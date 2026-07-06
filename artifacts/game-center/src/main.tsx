@@ -8,3 +8,13 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </AppProvider>
 );
+
+// Register the service worker for offline / installable PWA (production only,
+// so it never interferes with the Vite dev server / HMR).
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      /* ignore registration failures */
+    });
+  });
+}
