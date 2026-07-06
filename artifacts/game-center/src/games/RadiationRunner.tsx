@@ -374,6 +374,16 @@ export default function RadiationRunner() {
 
   useEffect(() => () => { cancelAnimationFrame(animRef.current); gsRef.current.running = false; }, []);
 
+  // Touch / mouse: tap the canvas to jump (mobile support)
+  const handleJumpTap = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    const gs = gsRef.current;
+    if (!gs.isJumping && gs.running && !gs.gameOver) {
+      gs.playerVY = JUMP_FORCE;
+      gs.isJumping = true;
+    }
+  }, []);
+
   return (
     <div className="flex flex-col items-center gap-4 p-4">
       <div className="text-center">
@@ -388,7 +398,8 @@ export default function RadiationRunner() {
           id="radiation-runner-canvas"
           width={CANVAS_W}
           height={CANVAS_H}
-          style={{ display: "block", background: "#020a02" }}
+          onPointerDown={handleJumpTap}
+          style={{ display: "block", background: "#020a02", touchAction: "none" }}
         />
         {!started && !gameOver && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
@@ -416,7 +427,7 @@ export default function RadiationRunner() {
       </div>
 
       <div className="text-xs text-green-600 text-center">
-        SPACE or ↑ Arrow to jump • Avoid all obstacles
+        SPACE / ↑ / TAP to jump • Avoid all obstacles
       </div>
 
       {showLb && (

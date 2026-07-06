@@ -152,6 +152,9 @@
 canvas {
   display: block;
   image-rendering: pixelated;
+  /* Scale down to fit narrow screens while keeping the drawing buffer size */
+  max-width: 100%;
+  height: auto;
 }
 
 /* Pip-Boy button */

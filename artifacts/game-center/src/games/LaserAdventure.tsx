@@ -143,6 +143,7 @@ export default function LaserAdventure() {
     slowMoTimer: 0,
     laserCooldown: 0,
     lastTime: 0,
+    pointer: { active: false, x: 0, y: 0 },
   });
   const animRef = useRef<number>(0);
   const [score, setScore] = useState(0);
@@ -200,12 +201,17 @@ export default function LaserAdventure() {
       if (gs.keys["ArrowDown"] || gs.keys["KeyS"]) gs.player.y += player_speed * dt;
       if (gs.keys["ArrowLeft"] || gs.keys["KeyA"]) gs.player.x -= player_speed * dt;
       if (gs.keys["ArrowRight"] || gs.keys["KeyD"]) gs.player.x += player_speed * dt;
+      // Touch: player follows the finger (mobile)
+      if (gs.pointer.active) {
+        gs.player.x = gs.pointer.x - gs.player.w / 2;
+        gs.player.y = gs.pointer.y - gs.player.h / 2;
+      }
       gs.player.x = Math.max(0, Math.min(CANVAS_W - gs.player.w, gs.player.x));
       gs.player.y = Math.max(0, Math.min(CANVAS_H - gs.player.h, gs.player.y));
 
-      // Shoot
+      // Shoot (keyboard, or auto-fire while touching)
       gs.laserCooldown = Math.max(0, gs.laserCooldown - dt);
-      if ((gs.keys["Space"] || gs.keys["KeyF"]) && gs.laserCooldown <= 0) {
+      if ((gs.keys["Space"] || gs.keys["KeyF"] || gs.pointer.active) && gs.laserCooldown <= 0) {
         gs.lasers.push({ x: gs.player.x + gs.player.w, y: gs.player.y + gs.player.h / 2, active: true });
         gs.laserCooldown = 12;
       }
@@ -353,6 +359,26 @@ export default function LaserAdventure() {
     if (!gs.gameOver) animRef.current = requestAnimationFrame(gameLoop);
   }, [triggerShake]);
 
+  // Touch / mouse controls: player follows pointer, auto-fires while pressed
+  const updatePointer = useCallback((e: React.PointerEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    // Map screen coords to the canvas drawing buffer (handles CSS scaling)
+    const gs = gameStateRef.current;
+    gs.pointer.x = (e.clientX - rect.left) * (CANVAS_W / rect.width);
+    gs.pointer.y = (e.clientY - rect.top) * (CANVAS_H / rect.height);
+  }, []);
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    gameStateRef.current.pointer.active = true;
+    updatePointer(e);
+  }, [updatePointer]);
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (gameStateRef.current.pointer.active) updatePointer(e);
+  }, [updatePointer]);
+  const endPointer = useCallback(() => { gameStateRef.current.pointer.active = false; }, []);
+
   const startGame = () => {
     const gs = gameStateRef.current;
     gs.player = { x: 100, y: 200, w: 32, h: 38 };
@@ -369,6 +395,7 @@ export default function LaserAdventure() {
     gs.slowMo = false;
     gs.laserCooldown = 0;
     gs.keys = {};
+    gs.pointer = { active: false, x: 0, y: 0 };
     setScore(0);
     setLives(3);
     setGameOver(false);
@@ -399,7 +426,11 @@ export default function LaserAdventure() {
           id="laser-adventure-canvas"
           width={CANVAS_W}
           height={CANVAS_H}
-          style={{ display: "block", background: "#040d04" }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endPointer}
+          onPointerLeave={endPointer}
+          style={{ display: "block", background: "#040d04", touchAction: "none" }}
         />
         {!gameStarted && !gameOver && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
@@ -422,7 +453,7 @@ export default function LaserAdventure() {
       </div>
 
       <div className="text-xs text-green-600 text-center">
-        WASD / Arrow Keys to move • SPACE or F to shoot laser
+        WASD / Arrows + SPACE/F to shoot • On mobile: drag to move, auto-fires
       </div>
     </div>
   );
