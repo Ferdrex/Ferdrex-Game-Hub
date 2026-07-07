@@ -103,9 +103,20 @@ const SECRET_FILES = [
   }
 ];
 
+const WORD_LIST_6 = ["BUNKER","CANYON","CIPHER","COBALT","DANGER","DECODE","DETOUR","ESCAPE","FALLEN","FILTER","FROZEN","GEIGER","HAZARD","HELMET","IMPACT","INTAKE","JACKAL","LEGEND","MARKER","MUTANT","PLAGUE","POISON","PROTON","RADIUM","RANGER","RATION","REBOOT","RESCUE","ROCKET","RUBBLE","RUINED","SAVAGE","SCORCH","SECTOR","SECURE","SHADOW","SHRINE","SIGNAL","SILENT","SNIPER","TANKER","TARGET","THREAT","TOXINS","TREMOR","TUNNEL","VECTOR","VENDOR","WANDER","WARDEN","WEAPON","WINTER","ZEALOT"];
+const WORD_LIST_7 = ["BLASTER","BROTHER","CAPITAL","CAUTION","CIRCUIT","CLEANUP","COMMAND","CONTROL","CORRODE","DEFENSE","DESTROY","DISEASE","DYNAMIC","EMITTER","EXPLODE","FALLOUT","FISSION","FORTIFY","FREEDOM","GUNFIRE","HOLDOUT","ISOTOPE","JOURNEY","LANTERN","MADNESS","MEGATON","MUTATED","NUCLEAR","OUTPOST","PROJECT","PROTECT","QUARTER","RADIATE","REACTOR","RECOVER","REFUGEE","SCANNER","SHELTER","SILICON","SOLDIER","STATION","SURFACE","SURVIVE","TRACKER","TROOPER","TWISTER","URANIUM","VENTURE","WARHEAD","WARRIOR","WARZONE","WHISPER"];
+
 function getWordList(len: number) {
-  return len === 4 ? WORD_LIST_4 : WORD_LIST_5;
+  return len === 4 ? WORD_LIST_4 : len === 5 ? WORD_LIST_5 : len === 6 ? WORD_LIST_6 : WORD_LIST_7;
 }
+
+type DiffKey = "easy" | "medium" | "hard" | "ultra";
+const DIFFS: Record<DiffKey, { len: number; words: number; syms: number; labelKey: string }> = {
+  easy:   { len: 4, words: 10, syms: 5, labelKey: "term.diff.easy" },
+  medium: { len: 5, words: 12, syms: 6, labelKey: "term.diff.medium" },
+  hard:   { len: 6, words: 14, syms: 7, labelKey: "term.diff.hard" },
+  ultra:  { len: 7, words: 16, syms: 8, labelKey: "term.diff.ultra" },
+};
 
 function getLetterMatches(guess: string, answer: string): number {
   let count = 0;
@@ -132,7 +143,7 @@ export default function TerminalHacker() {
     : "#00FF00";
   const glow = `0 0 10px ${tc}`;
   const [gameState, setGameState] = useState<GameState>("menu");
-  const [difficulty, setDifficulty] = useState<4|5>(4);
+  const [difficulty, setDifficulty] = useState<DiffKey>("easy");
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(() => getHighScore("terminal-streak"));
   const [newRecord, setNewRecord] = useState(false);
@@ -164,10 +175,11 @@ export default function TerminalHacker() {
 
   const addLog = (line: string) => setTerminalLog(p => [...p, `> ${line}`]);
 
-  const startGame = (diff: 4|5) => {
-    const list = getWordList(diff);
+  const startGame = (diff: DiffKey) => {
+    const cfg = DIFFS[diff];
+    const list = getWordList(cfg.len);
     const ans = list[Math.floor(Math.random() * list.length)];
-    const pool = pickWords(ans, diff === 4 ? 12 : 10, list);
+    const pool = pickWords(ans, cfg.words, list);
     setDifficulty(diff);
     setAnswer(ans);
     setWordPool(pool);
@@ -177,14 +189,14 @@ export default function TerminalHacker() {
     setSecretFile(null);
     setNewRecord(false);
     setDisplayedLines([]);
-    const mem = buildMemory(diff === 4 ? 6 : 7, 8);
+    const mem = buildMemory(cfg.syms, 8);
     setSyms(mem.syms);
     setMemLines(mem.memLines);
     setDudWords([]);
     setTerminalLog([
       "> ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM",
       "> CRACKING VAULT-TEC ENCRYPTED DATABASE...",
-      `> PASSWORD LENGTH: ${diff} CHARACTERS`,
+      `> PASSWORD LENGTH: ${cfg.len} CHARACTERS`,
       "> ATTEMPTS REMAINING: ████████",
       ">",
       `> ${pool.length} POSSIBLE PASSWORDS IDENTIFIED`,
@@ -283,9 +295,12 @@ export default function TerminalHacker() {
             {t("term.intro")}
           </div>
           <div className="text-xs mb-4" style={{ color: `${tc}b0` }}>{t("term.difficulty")}</div>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <button className="pipboy-btn" onClick={() => startGame(4)}>{t("term.4letter")}</button>
-            <button className="pipboy-btn" onClick={() => startGame(5)}>{t("term.5letter")}</button>
+          <div className="flex flex-col gap-2 items-center">
+            {(Object.keys(DIFFS) as DiffKey[]).map(key => (
+              <button key={key} className="pipboy-btn w-full max-w-xs" onClick={() => startGame(key)}>
+                {t(DIFFS[key].labelKey)} <span style={{ color: `${tc}88` }}>· {DIFFS[key].len} {t("term.letters")} · {DIFFS[key].words} {t("term.words")}</span>
+              </button>
+            ))}
           </div>
         </div>
       )}
